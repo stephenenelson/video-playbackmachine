@@ -11,7 +11,7 @@ use POSIX 'ceil';
 use DBI;
 
 use base 'Exporter';
-our @EXPORT_OK = qw(get_title get_length add_movie);
+our @EXPORT_OK = qw(get_title get_length add_movie add_fill);
 
 
 ####################### Module Constants #########################
@@ -24,7 +24,7 @@ sub get_title {
   my ($filename) = @_;
 
   my $name = basename($filename, '.avi', '.mov', '.dv', '.vob');
-  $name =~ s/^(?:movie|music|short)_//;
+  $name =~ s/^(?:movie|music|short|fill)_//;
   my @words = split(/_/, $name);
   my $title = join(' ', map { ucfirst( lc($_)  )} @words);
 }
@@ -63,12 +63,32 @@ sub add_movie {
 
   my $dbh = get_dbh();
 
+  $dbh->begin_work();
+
   _add_av_file($dbh, $filename, $title, $length);
 
   $dbh->do('INSERT INTO contents (title) VALUES (?)',
 	  {},
 	  $title);
 
+  $dbh->commit();
+
+}
+
+sub add_fill {
+  my ($filename, $title, $length) = @_;
+
+  my $dbh = get_dbh();
+
+  $dbh->begin_work();
+
+  _add_av_file($dbh, $filename, $title, $length);
+
+  $dbh->do('INSERT INTO fill_shorts (title) VALUES (?)',
+	   {},
+	   $title);
+
+  $dbh->commit();
 }
 
 sub _add_av_file {
