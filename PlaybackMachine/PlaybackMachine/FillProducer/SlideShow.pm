@@ -15,10 +15,13 @@ use warnings;
 use Carp;
 use POE;
 use IO::Dir;
+use File::stat;
+
 
 use base 'Video::PlaybackMachine::FillProducer';
 
 use Video::PlaybackMachine::TimeLayout::GranularTimeLayout;
+use Video::PlaybackMachine::Player qw(PLAYBACK_OK PLAYBACK_STOPPED);
 
 ############################# Class Constants #############################
 
@@ -45,6 +48,7 @@ sub new {
 	      time_layout => 
 	      Video::PlaybackMachine::TimeLayout::GranularTimeLayout->new($in{time}),
 	      directory => $in{'directory'},
+	      music_directory => $in{'music_directory'},
 	      time => $in{time}
 	     };
 
@@ -117,8 +121,12 @@ sub show_slide {
   # (The alarm cancel should be redundant.)
   else {
     print STDERR "Shutting down slideshow (time left=$time_played, $heap->{planned_time})\n";
-    $kernel->alarm('show_slide');
+    $kernel->alarm_remove('show_slide');
     $kernel->state('show_slide');
+    $kernel->state('next_song');
+    $kernel->alarm_remove('next_song');
+    $kernel->state('song_done');
+    $kernel->alarm_remove('song_done');
     delete $heap->{'slide_start_time'};
     delete $heap->{'planned_time'};
 
@@ -143,8 +151,59 @@ sub start {
   $heap->{'slide_start_time'} = time();
   $heap->{'planned_time'} = $planned_time;
   $poe_kernel->state('show_slide', $self);
+  $poe_kernel->state('next_song', $self);
+  $poe_kernel->state('song_done', $self);
   $poe_kernel->yield('show_slide');
+  $poe_kernel->yield('next_song');
 }
+
+sub next_song {
+  print STDERR "Running next song\n";
+  $_[KERNEL]->post('Player',
+		   'play_music',
+		    $_[SESSION]->postback('song_done'),
+		    $_[OBJECT]->get_music()
+		   );
+}
+
+sub song_done {
+    print STDERR "Song done\n";
+    my ($status) = @{ $_[ARG1] };
+  if ($status == PLAYBACK_OK()) {
+      print STDERR "Returned OK, playing next song\n";
+      $_[KERNEL]->yield('next_song');
+  }
+  else {
+      print STDERR "'$_[ARG1]' Not OK, stopping\n";
+      $_[KERNEL]->alarm('next_song');
+  }
+}
+
+##
+## Returns a list of music files.
+##
+sub get_music_files {
+	my $self = shift;
+	
+  my $dh = IO::Dir->new($self->{'music_directory'});
+  my @music_files = ();
+  while ( my $file = $dh->read() ) {
+    $file =~ /\.^/ and next;
+    $file =~ /\.(mp3|wav|ogg)$/ or next;
+    my $full_file = "$self->{'music_directory'}/$file";
+    -f $full_file or next;
+    push(@music_files, $full_file);
+  }
+  return @music_files;
+  
+}
+
+sub get_music {
+	my $self = shift;
+	my @music_files = $self->get_music_files();
+	return $music_files[ rand @music_files ];	
+}	
+
 
 1;
 
