@@ -1,18 +1,20 @@
+DELETE FROM schedules WHERE name='Test Schedule';
+DELETE FROM av_files WHERE title='Test Pattern';
+DELETE FROM av_files WHERE title='False Alarms';
+
 INSERT INTO schedules (name) VALUES ('Test Schedule');
 
-INSERT INTO content_types VALUES ('short');
-INSERT INTO content_types VALUES ('movie');
-INSERT INTO content_types VALUES ('trailer');
+INSERT INTO av_files(title) VALUES('Test Pattern');
+INSERT INTO av_file_component (title, file, duration) VALUES('Test Pattern', '/home/steven/Video/PlaybackMachine/test_movies/time_015.avi', '00:00:15');
 
-INSERT INTO av_files(title) VALUES('MIB Music video');
-INSERT INTO av_file_component (title, file, duration) VALUES('MIB Music video', 'music_MIB.vob', '00:03:43');
-INSERT INTO av_files (title) VALUES('Dr. Who: The Crystal Of Achillon');
-INSERT INTO av_file_component (title, file, duration) VALUES('Dr. Who: The Crystal Of Achillon', 'movie_drwho_crystal_of_achillon.mpg', '00:59:00');
+INSERT INTO av_files(title) VALUES('False Alarms');
+INSERT INTO av_file_component (title, file, duration) VALUES('False Alarms', '/home/steven/Video/PlaybackMachine/test_movies/music_falsealarms2.avi', '00:06:22');
 
-INSERT INTO contents (title, type, director, description) VALUES ('MIB Music video', 'short', 'Unknown', 'Music video for the song "Men In Black".');
-INSERT INTO contents (title, type, director, description) VALUES ('Dr. Who: The Crystal Of Achillon', 'movie', 'Chris Hoyle', 'In this fan-produced episode, The Doctor and his companion Leia must defeat the Master before he uses the dreaded Crystal of Achillon to take over the universe.');
 
 INSERT INTO content_schedule (id, schedule, listed, start_time, title)
-	VALUES (1, 'Test Schedule', TRUE,  'June 8, 2003 11:32:00 AM' , 'Dr. Who: The Crystal Of Achillon');
+	VALUES (1, 'Test Schedule', TRUE,  'Feb 18, 2005 11:32:00 AM' , 'Test Pattern');
+
+
 INSERT INTO content_schedule (id, schedule, listed, start_time, title)
-	VALUES (2, 'Test Schedule', FALSE, 'June 8, 2003 12:35:00 PM', 'MIB Music video');
+	VALUES (2, 'Test Schedule', TRUE,  'Feb 18, 2005 11:34:00 AM' , 'False Alarms');
+

@@ -89,9 +89,9 @@ sub _do_get_next_entry {
   my $self = shift;
   my ($time) = @_;
 
-  print STDERR "$time is ", scalar localtime $time, "\n";
+  my $corr_time = $time + $self->{'offset'};
 
-  return scalar($self->{schedule_table}->get_entries_after($time + $self->{'offset'}) );
+  return scalar($self->{schedule_table}->get_entries_after($corr_time) );
 }
 
 ##

@@ -36,7 +36,7 @@ CREATE SEQUENCE schedule_id_seq;
 
 CREATE TABLE content_schedule (
 	id			int primary key DEFAULT nextval('schedule_id_seq'),
-	title 		text not null references contents,
+	title 		text not null references av_files,
 	schedule	text not null  DEFAULT 'Baycon 2005' references schedules (name) ON DELETE CASCADE,
 	listed		boolean DEFAULT true,
 	start_time	timestamp not null

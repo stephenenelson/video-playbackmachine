@@ -418,7 +418,11 @@ sub schedule_next {
 
      # Set an alarm to play it
     my $alarm_offset = $self->{'schedule_view'}->stime($entry->get_start_time());
-        print STDERR scalar localtime(), ": scheduling: ", $entry->getTitle(), " at ", scalar localtime($alarm_offset), " in ", duration($alarm_offset - time()), "\n";
+    my $in_time = $alarm_offset - time();
+
+    ($in_time >= 0) or die "Attempt to schedule '", $entry->getTitle(), "' in the past ($in_time) at ", scalar  localtime $alarm_offset, "\n";
+
+        print STDERR scalar localtime(), ": scheduling: ", $entry->getTitle(), " at ", scalar localtime($alarm_offset), " in ", duration($in_time), "\n";
     $kernel->alarm( 'play_scheduled', $alarm_offset, $entry->get_listing(), 0 );
 
   } # End if there's something left
