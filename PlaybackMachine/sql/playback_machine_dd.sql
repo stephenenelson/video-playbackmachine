@@ -12,19 +12,24 @@ CREATE TABLE av_files (
 
 CREATE TABLE av_file_component (
 	file		text NOT NULL,
-	title		text REFERENCES av_files ON DELETE CASCADE,
+	title		text REFERENCES av_files 
+						ON DELETE CASCADE
+						ON UPDATE CASCADE,
 	duration	interval NOT NULL,
 	sequence_no	int DEFAULT (0),
 	PRIMARY KEY (file,sequence_no)
 );
 
 CREATE TABLE fill_shorts (
-	title		text REFERENCES av_files ON DELETE CASCADE,
+	title		text REFERENCES av_files ON DELETE CASCADE
+						 ON UPDATE CASCADE,
 	group_name 	text
 );
 
 CREATE TABLE contents (
-	title		text primary key references av_files on delete cascade,
+	title		text PRIMARY KEY REFERENCES av_files
+				ON DELETE CASCADE
+				ON UPDATE CASCADE,
 	type		text,
 	director	text,
 	description	text
@@ -34,16 +39,16 @@ CREATE TABLE schedules (
 	name		text primary key
 );
 
-INSERT INTO schedules (name) VALUES('Baycon 2005');
-
 CREATE SEQUENCE schedule_id_seq;
 
 CREATE TABLE content_schedule (
 	id			int primary key DEFAULT nextval('schedule_id_seq'),
 	title 		text not null references av_files,
-	schedule	text not null  DEFAULT 'Baycon 2005' references schedules (name) ON DELETE CASCADE,
+	schedule	text DEFAULT 'Baycon 2005' references schedules (name) 
+				ON DELETE CASCADE
+				ON UPDATE CASCADE,
 	listed		boolean DEFAULT true,
-	start_time	timestamp not null
+	start_time	timestamp WITH TIME ZONE NOT NULL
 );
 
 CREATE FUNCTION avfile_duration(text) RETURNS interval AS '
@@ -57,7 +62,8 @@ BEGIN
 END
 ' LANGUAGE 'plpgsql';
 
-CREATE FUNCTION stop_time(text,timestamp) RETURNS timestamp AS '
+CREATE FUNCTION stop_time(text,timestamp with time zone) 
+RETURNS timestamp with time zone AS '
 DECLARE
 stitle ALIAS FOR $1;
 start_time ALIAS FOR $2;
