@@ -115,7 +115,5 @@ sub get_av_files {
 ############################# Object Methods ##############################
 
 
-use interface 'Video::PlaybackMachine::Listable';
-
 
 1;
