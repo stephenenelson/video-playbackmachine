@@ -52,7 +52,7 @@ TESTS: {
 					   my ($heap, $kernel) = @_[HEAP, KERNEL];
 					   $heap->{length} =  time() - $heap->{time};
 					   ok( $heap->{length} > 0, "Time ran forward. That's generally good.");
-					   ok( ( ($heap->{length} - 15) ** 2 ) < 5, "Ended more or less on time.");
+					   ok( abs( ($heap->{length} - 15) ) < 3, "Ended more or less on time.");
 					   ok( $heap->{player}->get_status() == PLAYER_STATUS_STOP, "Player has stopped and has said so." );
 					 
 					 },
