@@ -51,13 +51,14 @@ sub _start {
   my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
 
   # Watch for incoming messages from the database
+  $self->{'dbh'}->do("LISTEN $self->{'table_name'}");
   my $fd = $self->{'dbh'}->func('getfd');
   my $fh = IO::Handle->new();
   $fh->fdopen($fd, 'r')
-    or die "Couldn't open file descriptor '$fd': $!";
+    or $self->{logger}->logdie("Couldn't open file descriptor '$fd': $!");
   $kernel->select_read($fh, 'changed');
   $heap->{'fh'} = $fh;
-  $self->{'dbh'}->do("LISTEN $self->{'table_name'}");
+  $self->{'logger'}->debug("Watching table $self->{'table_name'}");
 }
 
 sub shutdown {
@@ -71,6 +72,8 @@ sub shutdown {
 sub changed {
   my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
 
+  $self->{'logger'}->debug("Caught change");
+  
   my $ret = $self->{'dbh'}->func('pg_notifies')
     or return;
   $self->{'logger'}->debug("Caught change for table $ret");
