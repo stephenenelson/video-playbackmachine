@@ -22,6 +22,8 @@ use constant DEFAULT_SKIP_TOLERANCE => 30;
 
 use constant DEFAULT_IDLE_TOLERANCE => 15;
 
+our $Minimum_Fill = 5;
+
 use constant START_MODE => 0;
 
 use constant IDLE_MODE => 1;
@@ -47,8 +49,7 @@ sub new {
   my $type = shift;
   my %in = @_;
 
-  defined $in{player} or $in{player} = Video::PlaybackMachine::Player->new();
-  defined $in{filler} or $in{filler} = Video::PlaybackMachine::Filler->new();
+  defined $in{schedule_table} or croak "Argument 'schedule_table' required; stopped";
   defined $in{skip_tolerance} or $in{skip_tolerance} = DEFAULT_SKIP_TOLERANCE;
 
 
@@ -56,12 +57,12 @@ sub new {
 	      terminate_on_finish => 1,
 	      skip_tolerance => $in{skip_tolerance},
 	      schedule_table => $in{schedule_table},
-	      player => $in{player},
-	      filler => $in{filler},
+	      player => $in{player} || Video::PlaybackMachine::Player->new(),
+	      filler => $in{filler} || Video::PlaybackMachine::Filler->new(),
 	      waitlist => [],
 	      mode => START_MODE,
 	      offset => $in{offset},
-	      minimum_fill => 5,
+	      minimum_fill => $Minimum_Fill,
 	      schedule_view => Video::PlaybackMachine::ScheduleView->new($in{schedule_table}, $in{offset})
 	     };
 
