@@ -5,8 +5,7 @@ package Video::PlaybackMachine::Jukebox;
 ####
 #### $Revision$
 ####
-#### Plays songs. Selects the songs more or less randomly,
-#### but will avoid playing songs that it has played recently.
+#### Plays songs. Selects the songs more or less randomly.
 ####
 
 use strict;
@@ -21,6 +20,9 @@ use SDL::Mixer;
 use IO::Dir;
 
 ############################# Class Constants #############################
+
+## Time we take to fade in or out (ms)
+our $Fade_Ms = 250;
 
 ############################## Class Methods ##############################
 
@@ -56,9 +58,14 @@ sub new {
 sub start_music {
   my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
 
-  my @music_files = $self->get_music_files();
+  my $music = SDL::Music->new( $self->get_music() );
+  $self->{'mixer'}->fade_in_music($music, 1, $Fade_Ms);
+  
+  $heap->{'music'} = $music;
 
-  $heap->{'music'} = SDL::Music->new( $self->get_music() );
+}
+
+sub check_music {
 
 }
 
@@ -79,19 +86,29 @@ sub spawn {
 
 }
 
+##
+## Returns a list of music files.
+##
 sub get_music_files {
-
+	my $self = shift;
+	
   my $dh = IO::Dir->new($self->{'directory'});
   my @music_files = ();
   while ( my $file = $dh->read() ) {
     $file =~ /\.^/ and next;
     -f $file or next;
-    $file =~ /\.(mp3|wav)$/ or next;
+    $file =~ /\.(mp3|wav|ogg)$/ or next;
     push(@music_files, "$self->{'directory'}/$file");
   }
   return @music_files;
   
 }
+
+sub get_music {
+	my $self = shift;
+	my @music_files = $self->get_music_files();
+	return $music_files[ rand @music_files ];	
+}	
 
 
 1;

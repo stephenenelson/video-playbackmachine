@@ -55,7 +55,7 @@ sub _start {
 
   $kernel->alias_set('Player');
   xine_simple_init();
-
+ 
 }
 
 ##
