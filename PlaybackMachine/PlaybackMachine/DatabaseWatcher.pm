@@ -35,7 +35,7 @@ sub new {
 	my %in = @_;
 	my $self = {
 		    dbh => $in{'dbh'},
-		    table_name => $in{'table_name'},
+		    table_name => $in{'table'},
 		    session => $in{'session'},
 		    event => $in{'event'}
 		   };

@@ -79,15 +79,19 @@ sub get_schedule_table {
 ##
 sub get_next_entry {
   my $self = shift;
+  my ($time) = @_;
+  defined $time or $time = time();
 
-  return $self->_do_get_next_entry($self->stime(@_));
+  return $self->_do_get_next_entry($time);
 }
 
 sub _do_get_next_entry {
   my $self = shift;
   my ($time) = @_;
 
-  return scalar($self->{schedule_table}->get_entries_after($time) );
+  print STDERR "$time is ", scalar localtime $time, "\n";
+
+  return scalar($self->{schedule_table}->get_entries_after($time + $self->{'offset'}) );
 }
 
 ##
@@ -96,9 +100,7 @@ sub _do_get_next_entry {
 ##
 sub get_time_to_next {
   my $self = shift;
-  my $time = $self->stime(@_);
-
-#  print STDERR scalar localtime $time, "\n";
+  my $time = time();
 
   my $next_entry = $self->_do_get_next_entry($time)
     or return;

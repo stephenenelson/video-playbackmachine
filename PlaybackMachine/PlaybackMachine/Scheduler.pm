@@ -16,6 +16,8 @@ use POE::Session;
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
 use Video::PlaybackMachine::ScheduleView;
 
+use Time::Duration;
+
 use Carp;
 
 ############################# Class Constants #############################
@@ -245,7 +247,7 @@ sub update {
   } # End if we're not playing
 
   # Set alarm to play next scheduled item
-  $kernel->yield('schedule_next');
+  $kernel->delay('schedule_next', 5);
 }
 
 
@@ -375,7 +377,7 @@ sub play_scheduled {
     $movie->play($seek);
 
     # Schedule the next item from the schedule table
-    $kernel->yield('schedule_next');
+    $kernel->delay('schedule_next', 3);
 
   } # End otherwise
 
@@ -385,9 +387,7 @@ sub play_scheduled {
 sub wait_for_scheduled {
   my ($self, $kernel) = @_[OBJECT, KERNEL];
 
-  defined $self->get_time_to_next() or do { warn "Called wait_for_scheduled with nothing to wait for!";
-					    return;
-					  };
+  defined $self->get_time_to_next() or die "Called wait_for_scheduled with nothing to wait for";
 
   # If there's enough time before the next item to bother with fill
   if ( $self->get_time_to_next() > $self->{minimum_fill} ) {
@@ -418,7 +418,7 @@ sub schedule_next {
 
      # Set an alarm to play it
     my $alarm_offset = $self->{'schedule_view'}->stime($entry->get_start_time());
-        print STDERR scalar localtime(), ": scheduling: ", $entry->getTitle(), " at ", scalar localtime($alarm_offset), " in ", $alarm_offset - time(), "\n";
+        print STDERR scalar localtime(), ": scheduling: ", $entry->getTitle(), " at ", scalar localtime($alarm_offset), " in ", duration($alarm_offset - time()), "\n";
     $kernel->alarm( 'play_scheduled', $alarm_offset, $entry->get_listing(), 0 );
 
   } # End if there's something left

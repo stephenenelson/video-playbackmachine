@@ -16,6 +16,8 @@ use UNIVERSAL 'isa';
 use POE;
 use POE::Session;
 
+use Time::Duration;
+
 use Video::PlaybackMachine::TimeManager;
 
 ############################# Class Constants #############################
@@ -84,7 +86,7 @@ sub start_fill {
   $_[HEAP]{view} = $_[ARG0]
         or confess('ARG0 required');
 
-  print STDERR scalar localtime(), ": Filling, ttn=", $_[ARG0]->get_time_to_next(),"\n";
+  print STDERR scalar localtime(), ": Filling, ttn=", duration($_[ARG0]->get_time_to_next()),"\n";
 
   # View the first segment
   $_[KERNEL]->yield('next_fill');
