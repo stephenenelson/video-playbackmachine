@@ -100,9 +100,31 @@ CREATE OR REPLACE VIEW fills AS
 	SELECT title, avfile_duration(title) AS duration
 	FROM fill_shorts;
 
-CREATE OR REPLACE VIEW fills AS
+CREATE OR REPLACE VIEW movies AS
 	SELECT title, avfile_duration(title) AS duration
 	FROM contents;
+
+CREATE OR REPLACE VIEW schedule_times AS
+	SELECT 
+		content_schedule.id as id,
+		content_schedule.title,
+		schedule,
+		start_time,
+		stop_time(content_schedule.title,start_time) AS stop_time,
+		description
+	FROM content_schedule,contents
+	WHERE listed = TRUE AND contents.title = content_schedule.title;
+	
+
+CREATE OR REPLACE VIEW schedule_times_raw AS
+	SELECT 
+		id,
+	 	title,
+		schedule,
+		description,
+               	date_part('epoch', start_time) AS start_time,
+               	date_part('epoch', stop_time) AS stop_time
+	FROM schedule_times;
 
 
 ---
@@ -111,5 +133,8 @@ CREATE OR REPLACE VIEW fills AS
 GRANT SELECT ON TABLE schedules TO apache;
 GRANT SELECT ON TABLE av_file_component TO apache;
 GRANT SELECT ON TABLE av_files TO apache;
+GRANT SELECT ON TABLE schedule_times TO apache;
+GRANT SELECT ON TABLE movies TO apache;
+GRANT SELECT ON TABLE fills TO apache;
 GRANT ALL ON TABLE schedule_id_seq TO apache;
 GRANT ALL ON TABLE content_schedule TO apache;
