@@ -44,7 +44,8 @@ sub new {
   my $type = shift;
   my ($st) = @_;
   my $self = {
-	      st => $st
+	      st => $st,
+	      seen => {}
 	     };
   bless $self, $type;
 
@@ -73,10 +74,16 @@ sub start {
   my $self = shift;
   my ($time) = @_;
 
-  my @avfiles = map { $_->get_file() } $self->{'st'}->get_fill($time);
-  
-  $poe_kernel->yield('short_ready', @avfiles);
-
+  my @fills = $self->{'st'}->get_fills($time)
+    or return;
+  foreach my $avfile (@fills) {
+    my $file = $avfile->get_file();
+    $self->{seen}{$file}++ and next;
+    $poe_kernel->yield('short_ready', $file);
+    return 1;
+  }
+  $self->{'seen'} = {};
+  $self->start($time);
 }
 
 ##

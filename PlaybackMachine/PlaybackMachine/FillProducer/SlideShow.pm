@@ -14,8 +14,6 @@ use warnings;
 
 use Carp;
 use POE;
-use IO::Dir;
-use File::stat;
 use Log::Log4perl;
 
 
@@ -23,6 +21,7 @@ use base 'Video::PlaybackMachine::FillProducer';
 
 use Video::PlaybackMachine::TimeLayout::GranularTimeLayout;
 use Video::PlaybackMachine::Player qw(PLAYBACK_OK PLAYBACK_STOPPED);
+use Video::PlaybackMachine::FillProducer::Chooser;
 
 ############################# Class Constants #############################
 
@@ -43,13 +42,20 @@ sub new {
   my %in = @_;
 
   defined $in{time} or croak($type, "::new() called incorrectly");
-
+  
   my $self = {
-
+	      
 	      time_layout => 
 	      Video::PlaybackMachine::TimeLayout::GranularTimeLayout->new($in{time}, $Max_Slides),
-	      directory => $in{'directory'},
-	      music_directory => $in{'music_directory'},
+	      frame_chooser => 
+	      Video::PlaybackMachine::FillProducer::Chooser->new(
+								 DIRECTORY => $in{'directory'},
+								 ),
+	      music_chooser => 
+	      Video::PlaybackMachine::FillProducer::Chooser->new(
+								 DIRECTORY => $in{'music_directory'},
+								 FILTER => qr/\.(mp3|wav|ogg)$/
+								),
 	      time => $in{time},
 	      logger => Log::Log4perl->get_logger('Video::PlaybackMachine::Filler::Slideshow'),
 	      
@@ -72,9 +78,9 @@ sub get_time_layout {
 ##
 ## has_audio()
 ##
-## Stills don't have an audio track.
+## The slide show provides an audio track.
 ##
-sub has_audio { return; }
+sub has_audio { return 1; }
 
 ##
 ## Slideshow is available if the directory exists
@@ -83,23 +89,8 @@ sub has_audio { return; }
 sub is_available {
   my $self = shift;
 
-  -d $self->{'directory'} or return;
-  $self->getFrames() >= 1 or return;
-  return 1;
+  return $self->{'frame_chooser'}->is_available();
 
-}
-
-sub getFrames {
-  my $self = shift;
-
-  my $dh = IO::Dir->new($self->{'directory'});
-  my @frames = ();
-  while ( my $file = $dh->read() ) {
-    next if $file =~ /^\./;
-    next unless -r "$self->{'directory'}/$file";
-    push(@frames, "$self->{'directory'}/$file");
-  }
-  return @frames;
 }
 
 ##
@@ -115,8 +106,7 @@ sub show_slide {
   # to play it.
   my $time_played = ( time() - $heap->{'slide_start_time'} );
   if ( $heap->{planned_time} >  $time_played) {
-    my @frames = $self->getFrames();
-    my $frame = $frames[ rand( scalar @frames ) ];
+    my $frame = $self->{'frame_chooser'}->choose();
     $kernel->post('Player', 'play_still', $frame);
     $kernel->delay('show_slide', $self->{'time'});
   }
@@ -165,7 +155,7 @@ sub next_song {
   $_[KERNEL]->post('Player',
 		   'play_music',
 		    $_[SESSION]->postback('song_done'),
-		    $_[OBJECT]->get_music()
+		    $_[OBJECT]->{'music_chooser'}->choose()
 		   );
 }
 
@@ -181,31 +171,6 @@ sub song_done {
       $_[KERNEL]->alarm('next_song');
   }
 }
-
-##
-## Returns a list of music files.
-##
-sub get_music_files {
-	my $self = shift;
-	
-  my $dh = IO::Dir->new($self->{'music_directory'});
-  my @music_files = ();
-  while ( my $file = $dh->read() ) {
-    $file =~ /\.^/ and next;
-    $file =~ /\.(mp3|wav|ogg)$/ or next;
-    my $full_file = "$self->{'music_directory'}/$file";
-    -f $full_file or next;
-    push(@music_files, $full_file);
-  }
-  return @music_files;
-  
-}
-
-sub get_music {
-	my $self = shift;
-	my @music_files = $self->get_music_files();
-	return $music_files[ rand @music_files ];	
-}	
 
 
 1;
