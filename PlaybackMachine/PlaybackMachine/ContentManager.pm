@@ -11,7 +11,7 @@ use POSIX 'ceil';
 use DBI;
 
 use base 'Exporter';
-our @EXPORT_OK = qw(get_title get_length add_movie add_fill);
+our @EXPORT_OK = qw(get_title get_length add_movie add_fill get_missing);
 
 
 ####################### Module Constants #########################
@@ -19,6 +19,27 @@ our @EXPORT_OK = qw(get_title get_length add_movie add_fill);
 our $Database_Name = 'playback_machine';
 
 ######################## Subroutines ############################
+
+##
+## Returns any avi entries which do not exist on the
+## local file system. Note: will not decode MRLs; assumes
+## straight filenames.
+sub get_missing {
+  my ($filename) = @_;
+
+  my $dbh = get_dbh();
+  my $sth = $dbh->prepare('SELECT title,file FROM av_file_component');
+  $sth->execute()
+    or die "Couldn't execute: '$DBI::errstr'; stopped";
+  
+  my @missing = ();
+  while ( my ($title, $file) = $sth->fetchrow_array() ) {
+    -f $file and next;
+    push(@missing, [$title, $file]);
+  }
+  
+  return @missing;
+}
 
 sub get_title {
   my ($filename) = @_;
