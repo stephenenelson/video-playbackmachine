@@ -97,7 +97,7 @@ sub play {
 
   my $session = $poe_kernel->get_active_session();
 
-  $poe_kernel->post('Player', 'play', $session->postback($self, time()), $offset, map { $_->get_file() } $self->get_av_files());
+  $poe_kernel->post('Player', 'play', $session->postback('finished', $self, time()), $offset, map { $_->get_file() } $self->get_av_files());
 }
 
 ##

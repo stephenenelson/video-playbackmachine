@@ -60,7 +60,7 @@ sub spawn {
 					},
 		       object_states => [ $self => [
 					 qw(start_fill fill_done next_fill still_ready)
-					] ]
+					] ],
 		       );
 
 }

@@ -61,7 +61,9 @@ sub _start {
 ## Clean up after Xine.
 ##
 sub _stop {
-  xine_simple_cleanup();
+  if ( $_[OBJECT]->get_status() != PLAYER_STATUS_STOP ) {
+    xine_simple_stop();
+  }
 }
 
 ##
@@ -84,6 +86,8 @@ sub play {
 
   $heap->{postback} = $postback;
 
+  defined $offset or $offset = 0;
+
   @files or die "No files specified! stopped";
 
   xine_simple_play(\@files, $offset);
@@ -103,6 +107,8 @@ sub play {
 ## replaces it.
 ##
 sub play_still {
+  $_[OBJECT]->get_status() == PLAYER_STATUS_STOP
+    or xine_simple_stop();
   xine_simple_play_still($_[ARG0]);
 }
 
@@ -134,7 +140,7 @@ sub spawn {
   my $self = shift;
 
   POE::Session->create(
-		      object_states => [ $self => [ qw(_start _stop play check_finished) ] ]
+		       object_states => [ $self => [ qw(_start _stop play play_still check_finished) ] ],
 		     );
 }
 

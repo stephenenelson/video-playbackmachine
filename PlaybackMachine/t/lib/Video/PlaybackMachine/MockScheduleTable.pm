@@ -16,8 +16,6 @@ use warnings;
 
 use Video::PlaybackMachine::AVFile;
 use Video::PlaybackMachine::ScheduleEntry;
-use Video::PlaybackMachine::TestMovie;
-
 
 use base 'Exporter';
 
@@ -87,7 +85,10 @@ sub mock_schedule_table {
 ##
 sub new {
   my $type = shift;
-  my ($now) = @_;
+  my ($now, $movie_type) = @_;
+  defined $movie_type or $movie_type = 'Video::PlaybackMachine::TestMovie';
+
+  eval "use $movie_type";
 
   my @entries = ();
   my %entries_cache = ();
@@ -100,13 +101,14 @@ sub new {
 
 
   my $make_entry_func = sub {
-    my ($num, $start_off,  $expected_off, $duration, $real_duration) = @_;
+    my ($num, $start_off,  $expected_off, $duration, $real_duration, $file) = @_;
     defined $entries_cache{$num} && return $entries_cache{$num};
     defined($real_duration) or $real_duration = $duration;
     defined($expected_off) or $expected_off =  $start_off;
-    my $listing = Video::PlaybackMachine::TestMovie->new(
+    defined($file) or $file = '/dev/null';
+    my $listing = $movie_type->new(
 							 av_files => [ Video::PlaybackMachine::AVFile->new(
-													   '/dev/null',
+													   $file,
 													   $duration
 													  )
 								     ],
@@ -165,7 +167,13 @@ sub get_entry_during {
 
 sub add {
   my $self = shift;
-  $self->{add_func}(@_);
+  if (ref $_[0] eq 'HASH') {
+    my %in = %{ $_[0] };
+    $self->{add_func}(@in{ qw(start_off expected_off duration real_duration file) } );
+  }
+  else {
+    $self->{add_func}(@_);
+  }
 }
 
 1;

@@ -55,7 +55,7 @@ MAIN: {
   is(scalar $mock_player->get_calls('play'), 5, 'Number of times Player got called');
 
   # Check fill calls and args against expected time
-  compare_calltimes($mock_filler, 'fill', $now, [ 10 ]);
+  compare_calltimes($mock_filler, 'start_fill', $now, [ 10 ]);
 
 }
 

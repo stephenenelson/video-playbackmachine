@@ -32,6 +32,17 @@ use constant PLAY_MODE => 3;
 
 ############################## Class Methods ##############################
 
+
+##
+## new()
+##
+## Arguments: (hash)
+##  schedule_table => Video::Playback::ScheduleTable
+##  offset => integer: seconds
+##  player => Video::PlaybackMachine::Player (optional)
+##  filler => Video::PlaybackMachine::Filler (optional)
+##  skip_tolerance => integer: seconds (optional)
+##
 sub new {
   my $type = shift;
   my %in = @_;
@@ -65,7 +76,7 @@ sub spawn {
   POE::Session->create(
 		       object_states => [ 
 					 $self => [qw(_start finished update play_scheduled warning_scheduled schedule_next shutdown wait_for_scheduled)]
-					]
+					],
 		       );
 }
 
@@ -369,14 +380,18 @@ sub play_scheduled {
 sub wait_for_scheduled {
   my ($self, $kernel) = @_[OBJECT, KERNEL];
 
+  defined $self->get_time_to_next() or do { warn "Called wait_for_scheduled with nothing to wait for!";
+					    return;
+					  };
+
   # If there's enough time before the next item to bother with fill
-  if ( $self->get_time_to_next > $self->{minimum_fill} ) {
+  if ( $self->get_time_to_next() > $self->{minimum_fill} ) {
 
     # Mark that we're in Fill mode
     $self->{mode} = FILL_MODE;
 
     # Tell our Filler to get to work
-    $kernel->post('Filler', 'fill', $self->{schedule_table}, $self->{offset});
+    $kernel->post('Filler', 'start_fill', $self->{schedule_view});
 
   } # End if enough time
 

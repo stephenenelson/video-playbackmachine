@@ -10,7 +10,10 @@ BEGIN { use_ok('Video::PlaybackMachine::Player') };
 
 
 ## NOTE: Test movie from ftp.tek.com/tv/test/streams
-use constant TEST_MOVIE_1 => '/home/steven/dev/Video/PlaybackMachine/t/test_movies/time_015.m2v';
+use constant TEST_MOVIE_1 => 't/test_movies/time_015.m2v';
+
+## Still frame
+use constant TEST_STILL => 't/test_movies/test_logo.png';
 
 #########################
 
@@ -54,7 +57,6 @@ TESTS: {
 					   ok( $heap->{length} > 0, "Time ran forward. That's generally good.");
 					   ok( abs( ($heap->{length} - 15) ) < 3, "Ended more or less on time.");
 					   ok( $heap->{player}->get_status() == PLAYER_STATUS_STOP, "Player has stopped and has said so." );
-					 
 					 },
 					 terminate => sub {
 					   my ($heap, $kernel) = @_[HEAP, KERNEL];
