@@ -76,12 +76,6 @@ sub _stop {
 ## After Xine is started, we'll check on it every $XINE_CHECK_INTERVAL
 ## seconds to see if it has stopped.
 ##
-## Currently Xine_simple doesn't report errors, but if it did we'd send
-## an 'Error' event to Logger with what had happened.
-##
-## TODO: We should add a check to see if Xine is already running and report
-##       an error if so.
-##
 sub play {
   my ($kernel, $heap, $postback, $offset, @files) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2 .. $#_ ];
 

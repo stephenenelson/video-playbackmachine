@@ -18,6 +18,10 @@ CREATE TABLE av_file_component (
 	PRIMARY KEY (file,sequence_no)
 );
 
+CREATE TABLE fill_shorts (
+	title		text REFERENCES av_files ON DELETE CASCADE,
+	group_name 	text
+);
 
 CREATE TABLE contents (
 	title		text primary key references av_files on delete cascade,

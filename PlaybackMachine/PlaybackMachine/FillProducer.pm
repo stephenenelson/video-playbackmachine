@@ -21,6 +21,9 @@ use Carp;
 ##
 ## start()
 ##
+## Arguments:
+##  TIME: int -- time in seconds that we're to fill
+##
 ## Starts production of fill content. When it's ready, the
 ## FillProducer will send a 'still_ready' or 'movie_ready'
 ## signal.

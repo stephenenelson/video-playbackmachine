@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use Carp;
 
-use base 'Video::PlaybackMachine::FillProducer::AbstractStill';
+use base 'Video::PlaybackMachine::FillProducer';
 use POE;
 
 use IO::Dir;

@@ -68,15 +68,6 @@ sub has_audio { return; }
 ##
 sub is_available { 1; }
 
-##
-## get_next()
-##
-## Arguments:
-##   CURRENT_IDX -- int
-##
-## Stills are only played once.
-##
-sub get_next { return $_[1] + 1; }
 
 
 1;

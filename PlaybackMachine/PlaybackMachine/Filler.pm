@@ -61,7 +61,7 @@ sub spawn {
 					 }
 					},
 		       object_states => [ $self => [
-					 qw(start_fill fill_done next_fill still_ready stop)
+					 qw(start_fill fill_done next_fill short_ready stop)
 					] ],
 		       );
 
@@ -94,7 +94,10 @@ sub start_fill {
 }
 
 sub stop {
-  $_[KERNEL]->alarm_set('next_fill');
+  $_[KERNEL]->alarm_remove_all();
+  foreach (keys %{$_[HEAP]}) {
+    delete $_[HEAP]->{$_};
+  }
 }
 
 ##
@@ -129,19 +132,27 @@ sub next_fill {
       return;
     };
 
-  $segment->get_producer()->start();
+  print STDERR "Starting fill segment name: ", $segment->get_name(), "\n";
+
+  $segment->get_producer()->start($time);
 
 }
 
 ##
-## still_ready()
+## short_ready()
 ##
 ## Is called when one of the producers wants the Filler to display
-## a still. 
+## moving pictures.
 ##
-sub still_ready {
-  $_[KERNEL]->post('Player', 'play_still', $_[ARG0]);
-  $_[KERNEL]->delay('next_fill', $_[ARG1]);
+sub short_ready {
+  print STDERR "Playing shorts\n";
+  $_[KERNEL]->post('Player', 
+		   'play',
+		   $_[SESSION]->postback('next_fill'),
+		   0,
+		   @_[ARG0 .. $#_]);
+
 }
+
 
 1;

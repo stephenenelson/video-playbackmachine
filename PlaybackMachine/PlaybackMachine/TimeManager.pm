@@ -13,6 +13,17 @@ use strict;
 use warnings;
 use Carp;
 
+# TODO: I'm not sure that the implemented algorithm is correct. To get
+# the effects I'm looking for, basically the TimeManager should go
+# through in priority order and assign time slots to the Fill
+# Producers based on minimum and preferred time, stopping when we're
+# full.  Actual playback then follows sequence order. Preassignment
+# may be against some of the PM philosophy of constantly reacting to
+# the current situation, but is essential for getting some of the
+# effects that we want (such as "play fills before and after a short
+# movie, and ALWAYS do station identification")
+
+
 ############################# Class Constants #############################
 
 ############################## Class Methods ##############################
@@ -51,6 +62,9 @@ sub new {
 ## Returns the FillSegment to use to fill up time right now. Returns
 ## undef if no more fill can be played.
 ##
+
+# TODO: Can be simplified to a rotating index. We never play out of
+# sequence.
 sub get_segment {
   my $self = shift;
   my ($time_left) = @_;
@@ -60,10 +74,13 @@ sub get_segment {
 
     # Move to next segment if we don't have time to play it
     my $time_remaining = $self->_seconds_remaining($segment, $time_left);
-    $segment->is_available($time_remaining) or next;
+    $segment->is_available($time_remaining) or do {
+	print STDERR "Skipping segment ", $segment->get_name(), "\n";
+	next;
+    };
 
     # Update whatever we should play next
-    $self->{current_seq} = $segment->get_next();
+    $self->{current_seq} = ($self->{current_seq} + 1) % ($#{ $self->{seq_order} } + 1);
 
     # Return the segment and time remaining
     return ($segment, $time_remaining);
