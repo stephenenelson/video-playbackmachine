@@ -13,6 +13,7 @@ our @EXPORT_OK = qw(PLAYER_STATUS_STOP PLAYER_STATUS_PLAY PLAYER_STATUS_STILL
                     PLAYBACK_OK PLAYBACK_ERROR PLAYBACK_STOPPED);
 
 use POE;
+use POE::Wheel::Run;
 use Xine_simple qw(:all);
 
 use SDL;
@@ -25,7 +26,7 @@ use SDL::Mixer;
 use constant XINE_CHECK_INTERVAL_SECS => 2;
 
 ## How often to check if music has stopped, in seconds
-use constant MUSIC_CHECK_INTERVAL => 10;
+use constant MUSIC_CHECK_INTERVAL => 3;
 
 ## How long, in milliseconds, to fade out music
 use constant MUSIC_FADE_MILLIS => 250;
@@ -77,13 +78,6 @@ sub _start {
 
   $kernel->alias_set('Player');
   xwindows_init();
-  my $mixer = SDL::Mixer->new(
-			      -frequency => MIX_DEFAULT_FREQUENCY,
-			      -format => MIX_DEFAULT_FORMAT,
-			      -channels => MIX_DEFAULT_CHANNELS,
-			      -size => 4096
-			      );
-  $_[HEAP]->{'mixer'} = $mixer;
 
  
 }
@@ -118,8 +112,17 @@ sub play {
 
   @files or die "No files specified! stopped";
 
-  # Fade out music before playing a movie
-  $_[OBJECT]->stop_music($heap, $kernel);
+  # Stop music before a movie
+  if (xine_simple_get_music_status() == 1) {
+
+
+    xine_simple_stop();
+    xine_simple_cleanup();
+
+    my $postback = delete $heap->{'music_postback'};
+    $kernel->alarm('check_music_finished');
+    $postback->(PLAYBACK_STOPPED);
+  }
 
   print STDERR scalar localtime(), ": Playing ($offset):", join(' ', @files), "\n";
 
@@ -182,33 +185,33 @@ sub play_music {
 
     print STDERR "Starting song '$song_file'\n";
 
-    my $music = SDL::Music->new( $song_file )
-      or die "Couldn't open '$song_file' for some reason";
-    $heap->{'mixer'}->play_music($music,1);
+    xine_simple_play_music($song_file);
+    $kernel->delay('check_music_finished', MUSIC_CHECK_INTERVAL);
+    
 
-
-    $kernel->delay( 'check_music_finished', MUSIC_CHECK_INTERVAL );
   }
 }
 
-sub stop_music {
-  my $self = shift;
-  my ($heap, $kernel) = @_;
+sub check_music_finished {
+  my ($heap, $kernel) = @_[HEAP,KERNEL];
 
-  $kernel->alarm_remove('check_music_finished');
+  print STDERR "Checking if music is finished...\n";
 
-  defined ($heap->{'mixer'}) or return;
+  $heap->{'music_postback'} or die "Called 'check_music_finished' without a postback\n";
 
-  my $postback = delete $heap->{'music_postback'};
-
-  $postback->(PLAYBACK_STOPPED) if defined $postback;
-
-  $heap->{'mixer'}->playing_music() or return;
-
-  $heap->{'mixer'}->fade_out_music();
-
-
+  if ( xine_simple_get_music_status() == 1 ) {
+    $kernel->delay('check_music_finished', MUSIC_CHECK_INTERVAL);
+  }
+  else {
+    print STDERR "Music finished\n";
+    xine_simple_stop();
+    xine_simple_cleanup();
+    my $postback = delete $heap->{'music_postback'};
+    $kernel->alarm('check_music_finished');
+    $postback->(PLAYBACK_OK);
+  }
 }
+
 
 ##
 ## Responds to a 'check_finished' request by checking to see if
@@ -228,26 +231,6 @@ sub check_finished {
   }
 }
 
-##
-## Responds to a 'check_music_finished' event by checking to see if
-## the music's still going. If the music's over, hits the callback
-## with an "OK" message. Otherwise, continues the checking.
-##
-# NOTE Tempting to abstract the start/run/check/signal pattern to a bunch
-# of child sessions with adapter objects for SDL, Xine, and Imlib2.
-sub check_music_finished {
-  my ($self, $heap, $kernel) = @_[OBJECT,HEAP,KERNEL];
-
-  if ($heap->{'mixer'}->playing_music()) {
-    $kernel->delay( 'check_music_finished', MUSIC_CHECK_INTERVAL );
-  }
-  else {
-    print STDERR "Music finished\n";
-    my $postback = delete $heap->{music_postback};
-    $postback->(PLAYBACK_OK) if defined $postback;
-  }
-
-}
 
 ############################## Object Methods ################################
 
@@ -271,7 +254,7 @@ sub spawn {
 				     play_music
 				     check_music_finished
                                   ) 
-				 ] 
+				 ] ,
 		       ],
 		     );
 }
