@@ -173,11 +173,10 @@ sub play_music {
     $callback->(PLAYBACK_ERROR);
     return;
   }
+
+  # If the music is already playing, let it play, but substitute this callback
   elsif ($heap->{'music_postback'}) {
-    $self->{'logger'}->warn("Attempted to start song '$song_file' over previously-playing one");
-    my $callback = delete $heap->{'music_postback'};
-    $kernel->alarm('check_music_finished');
-    $callback->(PLAYBACK_ERROR);
+    $heap->{'music_postback'} = $callback;
     return;
   }
   else {
