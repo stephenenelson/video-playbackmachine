@@ -14,6 +14,7 @@ use warnings;
 use POE;
 use POE::Session;
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
+use Video::PlaybackMachine::ScheduleView;
 
 ############################# Class Constants #############################
 
@@ -38,7 +39,6 @@ sub new {
   defined $in{player} or $in{player} = Video::PlaybackMachine::Player->new();
   defined $in{filler} or $in{filler} = Video::PlaybackMachine::Filler->new();
   defined $in{skip_tolerance} or $in{skip_tolerance} = DEFAULT_SKIP_TOLERANCE;
-  defined $in{offset} or $in{offset} = 0;
 
 
   my $self = {
@@ -50,7 +50,8 @@ sub new {
 	      waitlist => [],
 	      mode => START_MODE,
 	      offset => $in{offset},
-	      minimum_fill => 5
+	      minimum_fill => 5,
+	      schedule_view => Video::PlaybackMachine::ScheduleView->new($in{schedule_table}, $in{offset})
 	     };
 
   bless $self, $type;
@@ -104,7 +105,7 @@ sub should_be_playing {
   my $self = shift;
   my $now = $self->stime(@_);
 
-  my $current = $self->{schedule_table}->get_entry_during($now);
+  my $current = $self->{schedule_view}->get_schedule_table()->get_entry_during($now);
 
   # If there's no entry to play right now, return nothing
   defined($current) or return;
@@ -132,57 +133,27 @@ sub should_be_playing {
 
 }
 
-##
-## Returns the seek time for a given schedule entry.
-##
 sub get_seek {
   my $self = shift;
-  my $entry = shift;
-
-  my $seek = $entry->get_listing()->get_length() - $self->get_time_to_next();
-  return ($seek > 0) ? $seek : 0;
-
+  return $self->{schedule_view}->get_seek(@_);
 }
 
-##
-## Returns the given time corrected with the schedule
-## offset. If no arguments, returns the current time
-## corrected for schedule offset.
-##
+
 sub stime {
   my $self = shift;
-  my ($time) = @_;
-
-  defined $time or $time = CORE::time();
-  return $time + $self->{offset};
-
+  return $self->{schedule_view}->stime(@_);
 }
 
-##
-## get_next_entry()
-##
-## Returns the next entry appearing on our Schedule Table.
-##
 sub get_next_entry {
   my $self = shift;
-
-  return scalar($self->{schedule_table}->get_entries_after( $self->stime(@_) ));
+  return $self->{schedule_view}->get_next_entry(@_);
 }
 
-##
-## Returns the amount of time until the next scheduled entry.
-## Returns empty if no scheduled entry remains.
-##
 sub get_time_to_next {
   my $self = shift;
-  my $time = $self->stime(@_);
-
-  my $next_entry = $self->get_next_entry($time)
-    or return;
-
-  return $next_entry->get_start_time() - $time;
-
+  return $self->{schedule_view}->get_time_to_next(@_);
 }
+
 
 ##
 ## Returns the amount of time required to skip to play
@@ -426,7 +397,7 @@ sub schedule_next {
   if ( my $entry = $self->get_next_entry() ) {
 
      # Set an alarm to play it
-    $kernel->alarm( 'play_scheduled', $entry->get_start_time() - $self->{offset}, $entry->get_listing(), 0 );
+    $kernel->alarm( 'play_scheduled', $entry->get_start_time() - $self->{schedule_view}->get_offset(), $entry->get_listing(), 0 );
 
   } # End if there's something left
 
