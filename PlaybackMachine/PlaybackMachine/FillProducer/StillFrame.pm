@@ -50,7 +50,17 @@ sub new {
 sub start {
   my $self = shift;
 
-  $poe_kernel->yield('still_ready', $self->{image}, $self->get_time_layout()->min_time());
+  $poe_kernel->post('Player', 'play_still', $self->{image});
+  $poe_kernel->delay('next_fill', , $self->get_time_layout()->preferred_time());
+}
+
+##
+## is_available()
+##
+## Reports that the still is available if the image file is readable.
+##
+sub is_available {
+  return -r $_[0]->{'image'};
 }
 
 1;
