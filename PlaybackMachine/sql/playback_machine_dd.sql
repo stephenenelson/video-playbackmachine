@@ -68,7 +68,7 @@ BEGIN
 	IF EXISTS( SELECT id FROM content_schedule
 		WHERE schedule = NEW.schedule
 			AND OID != NEW.OID
-			AND overlaps(NEW.start_time, ( avfile_duration(NEW.title) + INTERVAL '1 sec'), start_time, ( avfile_duration(title) + INTERVAL '1 sec'))
+			AND overlaps(NEW.start_time, ( avfile_duration(NEW.title) + INTERVAL ''1 sec''), start_time, ( avfile_duration(title) + INTERVAL ''1 sec''))
 	)
 	THEN
 		RAISE EXCEPTION ''Schedule entry conflicts with existing entry'';
