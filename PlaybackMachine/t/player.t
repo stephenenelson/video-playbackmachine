@@ -35,14 +35,14 @@ TESTS: {
   POE::Session->create(
 		       inline_states => {
 					 _start => sub {
-					   my ($heap, $kernel) = @_[HEAP, KERNEL];
+					   my ($heap, $session, $kernel) = @_[HEAP, SESSION, KERNEL];
 					   $kernel->alias_set('Scheduler');
 					   $heap->{player} = Video::PlaybackMachine::Player->new();
 					   $heap->{player_session} = $heap->{player}->spawn();
 					   $kernel->delay('check_running', 2);
 					   $kernel->delay('terminate', 20);
 					   $heap->{time} = time();
-					   $kernel->post($heap->{player_session}, 'play', 0, TEST_MOVIE_1);
+					   $kernel->post($heap->{player_session}, 'play', $session->postback( finished => [] ), 0, TEST_MOVIE_1);
 					 },
 					 check_running => sub {
 					   my ($heap, $kernel) = @_[HEAP, KERNEL];

@@ -9,7 +9,8 @@ package Video::PlaybackMachine::Player;
 
 use strict;
 use base 'Exporter';
-our @EXPORT_OK = qw(PLAYER_STATUS_STOP PLAYER_STATUS_PLAY PLAYER_STATUS_STILL);
+our @EXPORT_OK = qw(PLAYER_STATUS_STOP PLAYER_STATUS_PLAY PLAYER_STATUS_STILL
+                    PLAYBACK_STATUS_OK PLAYBACK_STATUS_ERROR);
 
 use POE;
 use Xine_simple qw(:all);
@@ -23,6 +24,10 @@ use constant XINE_CHECK_INTERVAL_SECS => 2;
 use constant PLAYER_STATUS_STOP => 0;
 use constant PLAYER_STATUS_PLAY => 1;
 use constant PLAYER_STATUS_STILL => 2;
+
+## How-the-movie-played status codes
+use constant PLAYBACK_OK => 1;
+use constant PLAYBACK_ERROR => 2;
 
 ############################## Class Methods #################################
 
@@ -78,7 +83,9 @@ sub _stop {
 ##       an error if so.
 ##
 sub play {
-  my ($kernel, $offset, $file) = @_[KERNEL, ARG0, ARG1 ];
+  my ($kernel, $heap, $postback, $offset, $file) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2 ];
+
+  $heap->{postback} = $postback;
 
   defined $file or die "No files specified! stopped";
 
@@ -94,13 +101,14 @@ sub play {
 ## If so, tells itself to check again in XINE_CHECK_INTERVAL_SECS seconds.
 ##
 sub check_finished {
-  my ($self, $kernel) = @_[OBJECT, KERNEL];
+  my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
 
   if ( $self->get_status() == PLAYER_STATUS_PLAY ) {
     $kernel->delay( 'check_finished', XINE_CHECK_INTERVAL_SECS );
   }
   else {
-    $kernel->post( 'Scheduler', 'finished' );
+    my $postback = delete $heap->{postback};
+    $postback->(PLAYBACK_OK);
   }
 }
 
