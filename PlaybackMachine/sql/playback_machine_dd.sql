@@ -1,5 +1,4 @@
 
-
 CREATE TABLE content_types (
 	type		text primary key
 );
@@ -7,14 +6,13 @@ CREATE TABLE content_types (
 
 CREATE TABLE av_files (
 	title		text primary key
-) on delete cascade
-  on update cascade;
+);
 
 
 
 CREATE TABLE av_file_component (
 	file		text NOT NULL,
-	title		text REFERENCES av_files,
+	title		text REFERENCES av_files ON DELETE CASCADE,
 	duration	interval NOT NULL,
 	sequence_no	int DEFAULT (0),
 	PRIMARY KEY (file,sequence_no)
@@ -22,7 +20,7 @@ CREATE TABLE av_file_component (
 
 
 CREATE TABLE contents (
-	title		text primary key references av_files,
+	title		text primary key references av_files on delete cascade,
 	type		text,
 	director	text,
 	description	text
@@ -32,12 +30,14 @@ CREATE TABLE schedules (
 	name		text primary key
 );
 
+INSERT INTO schedules (name) VALUES('Baycon 2005');
+
 CREATE SEQUENCE schedule_id_seq;
 
 CREATE TABLE content_schedule (
 	id			int primary key DEFAULT nextval('schedule_id_seq'),
 	title 		text not null references contents,
-	schedule	text not null references schedules (name) ON DELETE CASCADE,
+	schedule	text not null  DEFAULT 'Baycon 2005' references schedules (name) ON DELETE CASCADE,
 	listed		boolean DEFAULT true,
 	start_time	timestamp not null
 );
