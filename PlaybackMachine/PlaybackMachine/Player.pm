@@ -176,7 +176,7 @@ sub play_music {
   elsif ($heap->{'music_postback'}) {
     $self->{'logger'}->warn("Attempted to start song '$song_file' over previously-playing one");
     my $callback = delete $heap->{'music_postback'};
-    $kernel->alarm_remove('check_music_finished');
+    $kernel->alarm('check_music_finished');
     $callback->(PLAYBACK_ERROR);
     return;
   }
