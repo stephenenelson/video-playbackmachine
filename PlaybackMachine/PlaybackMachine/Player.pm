@@ -15,6 +15,7 @@ our @EXPORT_OK = qw(PLAYER_STATUS_STOP PLAYER_STATUS_PLAY PLAYER_STATUS_STILL
 use POE;
 use POE::Wheel::Run;
 use Xine_simple qw(:all);
+use Log::Log4perl;
 
 use SDL;
 use SDL::Music;
@@ -61,6 +62,7 @@ sub new {
 
   my $self = {
 	      music_check_interval => MUSIC_CHECK_INTERVAL,
+	      logger => Log::Log4perl->get_logger('Video.PlaybackMachine.Player'),
 	     };
 
 
@@ -124,7 +126,7 @@ sub play {
     $postback->(PLAYBACK_STOPPED);
   }
 
-  print STDERR scalar localtime(), ": Playing ($offset):", join(' ', @files), "\n";
+  $_[OBJECT]{'logger'}->info("Playing ($offset):" . join(' ', @files));
 
   xine_simple_init();
 
@@ -145,7 +147,7 @@ sub play {
 ## replaces it.
 ##
 sub play_still {
-    print STDERR "Showing '$_[ARG0]'\n";
+    $_[OBJECT]{'logger'}->debug("Showing '$_[ARG0]'");
     xine_simple_play_still($_[ARG0]);
 }
 
@@ -156,10 +158,9 @@ sub play_still {
 ##  ARG0 -- callback. What to call when the music's over.
 ##  ARG1 -- song file. Filename of the song to play.
 ##
-## Responds to a 'play_music' request by playing a particular
-## song using the SDL libraries. SDL can play mp3 or ogg files.
-## Prints a warning and does nothing if we tried to play music
-## during a movie.
+## Responds to a 'play_music' request by playing a particular song
+## using the SDL libraries. SDL can play mp3 or ogg files.  Logs a
+## warning and does nothing if we tried to play music during a movie.
 ##
 sub play_music {
   my ($self, $heap, $kernel, $callback, $song_file) = @_[OBJECT,HEAP,KERNEL,ARG0,ARG1];
@@ -168,12 +169,12 @@ sub play_music {
   defined $song_file or die "Must define song file!\n";
 
   if ($self->get_status() == PLAYER_STATUS_PLAY) {
-    print STDERR "Attempted to play '$song_file' while a movie is playing\n";
+    $self->{'logger'}->warn("Attempted to play '$song_file' while a movie is playing");
     $callback->(PLAYBACK_ERROR);
     return;
   }
   elsif ($heap->{'music_postback'}) {
-    print STDERR "Attempted to start song '$song_file' over previously-playing one\n";
+    $self->{'logger'}->warn("Attempted to start song '$song_file' over previously-playing one");
     my $callback = delete $heap->{'music_postback'};
     $kernel->alarm_remove('check_music_finished');
     $callback->(PLAYBACK_ERROR);
@@ -183,11 +184,10 @@ sub play_music {
 
     $heap->{'music_postback'} = $callback;
 
-    print STDERR "Starting song '$song_file'\n";
+    $self->{'logger'}->info("Starting song '$song_file'");
 
     xine_simple_play_music($song_file);
     $kernel->delay('check_music_finished', MUSIC_CHECK_INTERVAL);
-    
 
   }
 }
@@ -195,7 +195,6 @@ sub play_music {
 sub check_music_finished {
   my ($heap, $kernel) = @_[HEAP,KERNEL];
 
-  print STDERR "Checking if music is finished...\n";
 
   $heap->{'music_postback'} or die "Called 'check_music_finished' without a postback\n";
 
@@ -203,7 +202,6 @@ sub check_music_finished {
     $kernel->delay('check_music_finished', MUSIC_CHECK_INTERVAL);
   }
   else {
-    print STDERR "Music finished\n";
     xine_simple_stop();
     xine_simple_cleanup();
     my $postback = delete $heap->{'music_postback'};

@@ -17,6 +17,7 @@ use POE;
 use POE::Session;
 
 use Time::Duration;
+use Log::Log4perl;
 
 use Video::PlaybackMachine::TimeManager;
 
@@ -43,7 +44,8 @@ sub new {
   }
 
   my $self = {
-	      segments => $in{segments}
+	      segments => $in{segments},
+	      logger => Log::Log4perl->get_logger('Video::PlaybackMachine::Filler')
 	     };
 
   bless $self, $type;
@@ -84,9 +86,9 @@ sub start_fill {
 
   # Store the current schedule in the heap
   $_[HEAP]{view} = $_[ARG0]
-        or confess('ARG0 required');
+        or $_[OBJECT]->{'logger'}->logconfess('ARG0 required');
 
-  print STDERR scalar localtime(), ": Filling, ttn=", duration($_[ARG0]->get_time_to_next()),"\n";
+  $_[OBJECT]->{'logger'}->debug("Filling, ttn=", duration($_[ARG0]->get_time_to_next()),"\n");
 
   # View the first segment
   $_[KERNEL]->yield('next_fill');
@@ -122,7 +124,8 @@ sub fill_done {
 ##
 sub next_fill {
 
-  $_[HEAP]{view} or confess("Somehow called next_fill on us without calling start_fill");
+  $_[HEAP]{view} 
+    or $_[OBJECT]{'logger'}->logconfess("Somehow called next_fill on us without calling start_fill");
 
   my ($segment, $time) = $_[HEAP]{time_manager}->get_segment(
 							     $_[HEAP]{view}->get_time_to_next(time())
@@ -132,7 +135,7 @@ sub next_fill {
       return;
     };
 
-  print STDERR "Starting fill segment name: ", $segment->get_name(), "\n";
+  print $_[OBJECT]{'logger'}->debug("Starting fill segment name: ", $segment->get_name());
 
   $segment->get_producer()->start($time);
 
@@ -144,8 +147,8 @@ sub next_fill {
 ## Is called when one of the producers wants the Filler to display
 ## moving pictures.
 ##
+# TODO Is this routine used?
 sub short_ready {
-  print STDERR "Playing shorts\n";
   $_[KERNEL]->post('Player', 
 		   'play',
 		   $_[SESSION]->postback('next_fill'),

@@ -13,6 +13,8 @@ use warnings;
 
 use POE;
 use POE::Session;
+use Log::Log4perl;
+
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
 use Video::PlaybackMachine::ScheduleView;
 
@@ -69,6 +71,7 @@ sub new {
 	      minimum_fill => $Minimum_Fill,
 	      schedule_view => Video::PlaybackMachine::ScheduleView->new($in{schedule_table}, $in{offset}),
 	      watcher_session => $in{watcher},
+	      logger => Log::Log4perl->get_logger('Video::Playback::Scheduler'),
 	     };
 
   bless $self, $type;
@@ -231,7 +234,7 @@ sub update {
     # If there's something supposed to be playing
     if ( my $entry = $self->should_be_playing() ) {
 
-      print STDERR scalar localtime(), ": Time to play ", $entry->getTitle(), "\n";
+      $self->{'logger'}->debug("Time to play ", $entry->getTitle());
 
       # Play it
       $kernel->yield('play_scheduled', $entry->get_listing(), $self->get_seek($entry));
@@ -420,9 +423,10 @@ sub schedule_next {
     my $alarm_offset = $self->{'schedule_view'}->stime($entry->get_start_time());
     my $in_time = $alarm_offset - time();
 
-    ($in_time >= 0) or die "Attempt to schedule '", $entry->getTitle(), "' in the past ($in_time) at ", scalar  localtime $alarm_offset, "\n";
+    ($in_time >= 0) 
+      or $self->{'logger'}->logdie("Attempt to schedule '", $entry->getTitle(), "' in the past ($in_time) at ", scalar  localtime $alarm_offset);
 
-        print STDERR scalar localtime(), ": scheduling: ", $entry->getTitle(), " at ", scalar localtime($alarm_offset), " in ", duration($in_time), "\n";
+    $self->{'logger'}->info("scheduling: ", $entry->getTitle(), " at ", scalar localtime($alarm_offset), " in ", duration($in_time));
     $kernel->alarm( 'play_scheduled', $alarm_offset, $entry->get_listing(), 0 );
 
   } # End if there's something left

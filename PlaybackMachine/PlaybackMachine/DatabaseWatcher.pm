@@ -15,6 +15,8 @@ use diagnostics;
 
 use IO::Handle;
 
+use Log::Log4perl;
+
 use POE;
 use POE::Session;
 use POE::Kernel;
@@ -37,7 +39,8 @@ sub new {
 		    dbh => $in{'dbh'},
 		    table_name => $in{'table'},
 		    session => $in{'session'},
-		    event => $in{'event'}
+		    event => $in{'event'},
+		    logger => Log::Log4perl->get_logger('Video::PlaybackMachine::DatabaseWatcher')
 		   };
 	bless $self, $type;
 }
@@ -70,7 +73,7 @@ sub changed {
 
   my $ret = $self->{'dbh'}->func('pg_notifies')
     or return;
-  print STDERR scalar localtime(), ": Caught change for table $ret\n";
+  $self->{'logger'}->debug("Caught change for table $ret");
   $ret->[0] eq $self->{'table_name'} or return;
   $kernel->post($self->{'session'},
   				$self->{'event'});

@@ -13,6 +13,8 @@ use strict;
 use warnings;
 use Carp;
 
+use Log::Log4perl;
+
 # TODO: I'm not sure that the implemented algorithm is correct. To get
 # the effects I'm looking for, basically the TimeManager should go
 # through in priority order and assign time slots to the Fill
@@ -22,7 +24,12 @@ use Carp;
 # the current situation, but is essential for getting some of the
 # effects that we want (such as "play fills before and after a short
 # movie, and ALWAYS do station identification")
-
+#
+# Later update: The algorithm actually works as well, if not better,
+# than the above. It gets the amount of time remaining, and the amount
+# of time required, and the amount of time required by items of a
+# higher priority, and computes the remainder.
+#
 
 ############################# Class Constants #############################
 
@@ -43,6 +50,7 @@ sub new {
   my $self = { };
   $self->{seq_order} = [ sort { $a->get_sequence() <=> $b->get_sequence() } @segments ];
   $self->{current_seq} = 0;
+  $self->{'logger'} = Log::Log4perl->get_logger('Video::PlaybackMachine::Filler::TimeManager');
 
   bless $self, $type;
 }
@@ -75,8 +83,8 @@ sub get_segment {
     # Move to next segment if we don't have time to play it
     my $time_remaining = $self->_seconds_remaining($segment, $time_left);
     $segment->is_available($time_remaining) or do {
-	print STDERR "Skipping segment ", $segment->get_name(), "\n";
-	next;
+      $self->{'logger'}->debug("Skipping segment ", $segment->get_name());
+      next;
     };
 
     # Update whatever we should play next

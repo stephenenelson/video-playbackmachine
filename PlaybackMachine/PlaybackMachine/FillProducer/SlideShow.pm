@@ -16,6 +16,7 @@ use Carp;
 use POE;
 use IO::Dir;
 use File::stat;
+use Log::Log4perl;
 
 
 use base 'Video::PlaybackMachine::FillProducer';
@@ -26,7 +27,7 @@ use Video::PlaybackMachine::Player qw(PLAYBACK_OK PLAYBACK_STOPPED);
 ############################# Class Constants #############################
 
 # Maximum number of slides to play in a row
-our $Max_Slides = 3;
+our $Max_Slides = 5;
 
 ############################## Class Methods ##############################
 
@@ -46,10 +47,12 @@ sub new {
   my $self = {
 
 	      time_layout => 
-	      Video::PlaybackMachine::TimeLayout::GranularTimeLayout->new($in{time}),
+	      Video::PlaybackMachine::TimeLayout::GranularTimeLayout->new($in{time}, $Max_Slides),
 	      directory => $in{'directory'},
 	      music_directory => $in{'music_directory'},
-	      time => $in{time}
+	      time => $in{time},
+	      logger => Log::Log4perl->get_logger('Video::PlaybackMachine::Filler::Slideshow'),
+	      
 	     };
 
   bless $self, $type;
@@ -93,7 +96,7 @@ sub getFrames {
   my @frames = ();
   while ( my $file = $dh->read() ) {
     next if $file =~ /^\./;
-    next unless -f "$self->{'directory'}/$file";
+    next unless -r "$self->{'directory'}/$file";
     push(@frames, "$self->{'directory'}/$file");
   }
   return @frames;
@@ -120,7 +123,7 @@ sub show_slide {
   # Otherwise, cancel all slides and shut things down.
   # (The alarm cancel should be redundant.)
   else {
-    print STDERR "Shutting down slideshow (time left=$time_played, $heap->{planned_time})\n";
+    $self->{'logger'}->debug("Shutting down slideshow (time left=$time_played, $heap->{planned_time})");
     $kernel->alarm_remove('show_slide');
     $kernel->state('show_slide');
     $kernel->state('next_song');
@@ -158,7 +161,7 @@ sub start {
 }
 
 sub next_song {
-  print STDERR "Running next song\n";
+  $_[OBJECT]{'logger'}->debug("Running next song");
   $_[KERNEL]->post('Player',
 		   'play_music',
 		    $_[SESSION]->postback('song_done'),
@@ -167,14 +170,14 @@ sub next_song {
 }
 
 sub song_done {
-    print STDERR "Song done\n";
+    $_[OBJECT]{'logger'}->debug("Song done");
     my ($status) = @{ $_[ARG1] };
   if ($status == PLAYBACK_OK()) {
-      print STDERR "Returned OK, playing next song\n";
+      $_[OBJECT]{'logger'}->debug("Returned OK, playing next song");
       $_[KERNEL]->yield('next_song');
   }
   else {
-      print STDERR "'$_[ARG1]' Not OK, stopping\n";
+      $_[OBJECT]{'logger'}->debug("'$status' Not OK, stopping");
       $_[KERNEL]->alarm('next_song');
   }
 }

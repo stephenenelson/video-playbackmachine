@@ -91,8 +91,6 @@ sub _do_get_next_entry {
 
   my $corr_time = $time + $self->{'offset'};
 
-  print STDERR "Getting entries after ", scalar localtime $corr_time, "\n";
-
   return scalar($self->{schedule_table}->get_entries_after($corr_time + 1) );
 }
 
