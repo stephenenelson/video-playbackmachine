@@ -8,6 +8,8 @@
 use Test::More tests => 1;
 BEGIN { use_ok('Video::PlaybackMachine') };
 
+use strict;
+
 #########################
 
 # Insert your test code below, the Test::More module is use()ed here so read

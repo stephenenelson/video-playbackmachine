@@ -5,7 +5,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 BEGIN { use_ok('Video::PlaybackMachine::FillProducer::StillFrame') };
 
 use POE;
@@ -25,6 +25,7 @@ MAIN: {
 								    );
   ok(! $frame->has_audio(), "Still frame doesn't have audio");
   isa_ok( $frame->get_time_layout(), 'Video::PlaybackMachine::TimeLayout::FixedTimeLayout');
+  is($frame->get_next(1), 2);
 
   my $still = '';
   my $time = 0;

@@ -31,6 +31,8 @@ sub new {
   my $type = shift;
   my %in = @_;
 
+  defined $in{time} or croak($type, "::new() called incorrectly");
+
   my $self = {
 	      time_layout => 
 	      Video::PlaybackMachine::TimeLayout::FixedTimeLayout->new($in{time})
@@ -58,6 +60,23 @@ sub get_time_layout {
 ## Stills don't have an audio track.
 ##
 sub has_audio { return; }
+
+##
+## is_available()
+##
+## Stills are always available. Unless they aren't.
+##
+sub is_available { 1; }
+
+##
+## get_next()
+##
+## Arguments:
+##   CURRENT_IDX -- int
+##
+## Stills are only played once.
+##
+sub get_next { return $_[1] + 1; }
 
 
 1;

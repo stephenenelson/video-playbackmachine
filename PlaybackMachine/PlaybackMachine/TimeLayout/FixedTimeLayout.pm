@@ -28,6 +28,7 @@ use Carp;
 sub new {
   my $type = shift;
   my ($time) = @_;
+  defined $time or croak($type, "::new() called incorrectly");
 
   my $self = { time => $time };
   bless $self, $type;

@@ -28,6 +28,7 @@ use Carp;
 ##   sequence_order => int -- Where this segment will be played in break
 ##   priority_order => int -- Priority for segment if not enough time for all
 ##   producer => FillProducer
+##   multiple => boolean -- True if we should show as long as time avail, false otherwise
 ##
 sub new {
   my $type = shift;
@@ -37,7 +38,8 @@ sub new {
 	      name => $in{name},
 	      sequence_order => $in{sequence_order},
 	      priority_order => $in{priority_order},
-	      producer => $in{producer}
+	      producer => $in{producer},
+	      multiple => $in{multiple}
 	     };
 
   bless $self, $type;
@@ -57,21 +59,51 @@ sub get_name {
 }
 
 ##
-## get_sequence_order()
+## is_available()
+##
+## Arguments:
+##   TIME_LEFT: int
+##
+## Returns:
+##   boolean
+##
+sub is_available {
+  my $self = shift;
+  my ($time_left) = @_;
+  defined $time_left or croak(ref $self, "::is_available() called incorrectly");
+
+  $self->get_producer()->is_available() or return;
+
+  return ($self->get_producer->get_time_layout()->min_time() <= $time_left);
+}
+
+##
+## get_sequence()
 ##
 ## Returns the sequence order of the segment.
 ##
-sub get_sequence_order { 
+sub get_sequence {
   $_[0]->{sequence_order};
 }
 
 ##
-## get_priority_order()
+## get_priority()
 ##
 ## Returns the priority order of the segment.
 ##
-sub get_priority_order { 
+sub get_priority {
   $_[0]->{priority_order};
+}
+
+##
+## get_next()
+##
+## Returns the sequence number of the FillSegment
+## which should come after this one.
+##
+sub get_next {
+  my $self = shift;
+  return $self->get_producer->get_next( $self->get_sequence() );
 }
 
 ##

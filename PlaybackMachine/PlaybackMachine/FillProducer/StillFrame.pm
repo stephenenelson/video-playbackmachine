@@ -23,8 +23,8 @@ use POE;
 ## new()
 ##
 ## Arguments: (hash)
-##  image: string -- filename of image
-##  time: int -- time in seconds image should be displayed
+##  image => string -- filename of image
+##  time => int -- time in seconds image should be displayed
 ##
 sub new {
   my $type = shift;
