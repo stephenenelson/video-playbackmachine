@@ -37,7 +37,7 @@ sub new {
 		    dbh => $in{'dbh'},
 		    table_name => $in{'table_name'},
 		    session => $in{'session'},
-                    event => $in{'event'}
+            event => $in{'event'}
 		   };
 }
 
@@ -69,6 +69,8 @@ sub changed {
   my $ret = $self->{'dbh'}->func('pg_notifies')
     or return;
   $ret->[0] eq $self->{'table_name'} or return;
+  $kernel->post($self->{'session'},
+  				$self->{'event'});
   
 }
 
