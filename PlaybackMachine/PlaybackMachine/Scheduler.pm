@@ -14,6 +14,7 @@ use warnings;
 use POE;
 use POE::Session;
 use Log::Log4perl;
+use Date::Manip;
 
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
 use Video::PlaybackMachine::ScheduleView;
@@ -30,13 +31,23 @@ use constant DEFAULT_IDLE_TOLERANCE => 15;
 
 our $Minimum_Fill = 5;
 
+
+## Modes of operation
+
+# Starting up, haven't played anything yet
 use constant START_MODE => 0;
 
+# Idle mode -- dead air
 use constant IDLE_MODE => 1;
 
+# Between scheduled content
 use constant FILL_MODE => 2;
 
+# Playing scheduled content
 use constant PLAY_MODE => 3;
+
+## Auto-restart interval-- Minimum number of seconds between restarts
+use constant RESTART_INTERVAL => 7 * 60 * 60;
 
 ############################## Class Methods ##############################
 
@@ -73,6 +84,8 @@ sub new {
 	      watcher_session => $in{watcher},
 	      logger => Log::Log4perl->get_logger('Video::Playback::Scheduler'),
 	     };
+
+  $self->{'logger'}->info("$0 started");
 
   bless $self, $type;
 }
@@ -196,6 +209,17 @@ sub time_skip {
 
 ############################# Session Methods #############################
 
+
+##
+## _start()
+##
+## POE startup state.
+##
+## Called when the session begins. Spawns off a player and filler session
+## so that they can do whatever prep work they need to do, identifies
+## this session as a scheduler, and checks the database for things
+## that should be played.
+##
 sub _start {
   my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
 
@@ -269,6 +293,14 @@ sub finished {
   my ($self, $kernel, $request, $response) = @_[OBJECT, KERNEL, ARG0, ARG1];
 
   my $now = time();
+
+  # If we've been running longer than the restart interval, restart the system
+  if ( ($now - $^T) > RESTART_INTERVAL ) {
+    my $table = $self->{'schedule_table'};
+    my @restart_args = ($^X, $0, $table->get_schedule_name(), 'epoch ' . ($self->{'offset'} + time()));
+    $self->{'logger'}->info("Restarted $0 with command line ", join(' ', @restart_args));
+    exec(@restart_args);
+  }
 
   # We're in idle mode now
   $self->{mode} = IDLE_MODE;
