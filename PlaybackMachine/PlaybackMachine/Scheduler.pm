@@ -125,8 +125,7 @@ sub should_be_playing {
   # If there's no entry to play right now, return nothing
   defined($current) or return;
 
-  # If we're in startup mode
-  if ($self->get_mode() == START_MODE) {
+   if ($self->get_mode() == START_MODE) {
 
     # Return the movie listing
     return $current;
@@ -229,6 +228,8 @@ sub update {
 
     # If there's something supposed to be playing
     if ( my $entry = $self->should_be_playing() ) {
+
+      print STDERR scalar localtime(), ": Time to play ", $entry->getTitle(), "\n";
 
       # Play it
       $kernel->yield('play_scheduled', $entry->get_listing(), $self->get_seek($entry));
@@ -371,7 +372,7 @@ sub play_scheduled {
     $self->{'mode'} = PLAY_MODE;
 
     # Start playing the movie
-    $movie->play();
+    $movie->play($seek);
 
     # Schedule the next item from the schedule table
     $kernel->yield('schedule_next');
@@ -416,7 +417,9 @@ sub schedule_next {
   if ( my $entry = $self->get_next_entry() ) {
 
      # Set an alarm to play it
-    $kernel->alarm( 'play_scheduled', $entry->get_start_time() - $self->{schedule_view}->get_offset(), $entry->get_listing(), 0 );
+    my $alarm_offset = $self->{'schedule_view'}->stime($entry->get_start_time());
+        print STDERR scalar localtime(), ": scheduling: ", $entry->getTitle(), " at ", scalar localtime($alarm_offset), " in ", $alarm_offset - time(), "\n";
+    $kernel->alarm( 'play_scheduled', $alarm_offset, $entry->get_listing(), 0 );
 
   } # End if there's something left
 

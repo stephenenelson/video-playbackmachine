@@ -78,5 +78,9 @@ sub get_listing {
   return $self->{Listing};
 }
 
+sub getTitle {
+  return $_[0]->{'Listing'}->get_title();
+}
+
 
 1;

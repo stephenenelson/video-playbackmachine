@@ -54,7 +54,7 @@ sub stime {
   my ($time) = @_;
 
   defined $time or $time = CORE::time();
-  return $time + $self->{offset};
+  return $time - $self->{offset};
 
 }
 
@@ -98,12 +98,12 @@ sub get_time_to_next {
   my $self = shift;
   my $time = $self->stime(@_);
 
-  print STDERR scalar localtime $time, "\n";
+#  print STDERR scalar localtime $time, "\n";
 
   my $next_entry = $self->_do_get_next_entry($time)
     or return;
 
-  return $next_entry->get_start_time() - $time;
+  return $self->stime($next_entry->get_start_time()) - $time;
 
 }
 
@@ -114,7 +114,7 @@ sub get_seek {
   my $self = shift;
   my $entry = shift;
 
-  my $seek = $entry->get_listing()->get_length() - $self->get_time_to_next();
+  my $seek = $self->stime() - $entry->get_start_time();
   return ($seek > 0) ? $seek : 0;
 
 }

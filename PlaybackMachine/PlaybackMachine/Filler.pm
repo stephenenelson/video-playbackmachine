@@ -59,7 +59,7 @@ sub spawn {
 					 }
 					},
 		       object_states => [ $self => [
-					 qw(start_fill fill_done next_fill still_ready)
+					 qw(start_fill fill_done next_fill still_ready stop)
 					] ],
 		       );
 
@@ -84,9 +84,15 @@ sub start_fill {
   $_[HEAP]{view} = $_[ARG0]
         or confess('ARG0 required');
 
+  print STDERR scalar localtime(), ": Filling, ttn=", $_[ARG0]->get_time_to_next(),"\n";
+
   # View the first segment
   $_[KERNEL]->yield('next_fill');
 
+}
+
+sub stop {
+  $_[KERNEL]->alarm_set('next_fill');
 }
 
 ##

@@ -57,8 +57,8 @@ sub getFrames {
   my $dh = IO::Dir->new($self->{'directory'});
   my @frames = ();
   while ( my $file = $dh->read() ) {
-    $file =~ /\.^/ and next;
-    -f $file or next;
+    next if $file =~ /^\./;
+    next unless -f "$self->{'directory'}/$file";
     push(@frames, "$self->{'directory'}/$file");
   }
   return @frames;

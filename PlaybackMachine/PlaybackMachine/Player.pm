@@ -29,6 +29,7 @@ use constant PLAYER_STATUS_STILL => 2;
 use constant PLAYBACK_OK => 1;
 use constant PLAYBACK_ERROR => 2;
 
+
 ############################## Class Methods #################################
 
 ##
@@ -90,7 +91,9 @@ sub play {
 
   @files or die "No files specified! stopped";
 
-  xine_simple_play(\@files, $offset);
+  print STDERR scalar localtime(), ": Playing ($offset):", join(' ', @files), "\n";
+
+  xine_simple_play(\@files, $offset * 1000);
 
   $kernel->delay( 'check_finished', XINE_CHECK_INTERVAL_SECS );
 

@@ -28,7 +28,7 @@ use IO::Dir;
 ## new()
 ##
 ## Arguments: (hash)
-##   song_chooser => Video::PlaybackMachine::NeophileChooser
+##   directory => string -- Directory which holds songs
 ##   check_interval => int -- Number of seconds between checks on whether 
 ##                            we're playing
 sub new {
@@ -86,6 +86,7 @@ sub get_music_files {
   while ( my $file = $dh->read() ) {
     $file =~ /\.^/ and next;
     -f $file or next;
+    $file =~ /\.(mp3|wav)$/ or next;
     push(@music_files, "$self->{'directory'}/$file");
   }
   return @music_files;

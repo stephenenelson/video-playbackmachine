@@ -7,7 +7,8 @@ CREATE TABLE content_types (
 
 CREATE TABLE av_files (
 	title		text primary key
-);
+) on delete cascade
+  on update cascade;
 
 
 
@@ -66,7 +67,8 @@ CREATE FUNCTION check_overlap() RETURNS TRIGGER AS '
 BEGIN
 	IF EXISTS( SELECT id FROM content_schedule
 		WHERE schedule = NEW.schedule
-			AND overlaps(NEW.start_time, avfile_duration(NEW.title), start_time, avfile_duration(title))
+			AND OID != NEW.OID
+			AND overlaps(NEW.start_time, ( avfile_duration(NEW.title) + INTERVAL '1 sec'), start_time, ( avfile_duration(title) + INTERVAL '1 sec'))
 	)
 	THEN
 		RAISE EXCEPTION ''Schedule entry conflicts with existing entry'';
@@ -77,6 +79,5 @@ END;
 
 CREATE TRIGGER content_check_overlap BEFORE INSERT OR UPDATE ON content_schedule
 	FOR EACH ROW EXECUTE PROCEDURE check_overlap();
-
 
 

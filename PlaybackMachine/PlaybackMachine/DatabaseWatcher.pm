@@ -54,6 +54,7 @@ sub _start {
     or die "Couldn't open file descriptor '$fd': $!";
   $kernel->select_read($fh, 'changed');
   $heap->{'fh'} = $fh;
+  $self->{'dbh'}->do("LISTEN $self->{'table_name'}");
 }
 
 sub shutdown {
@@ -69,6 +70,7 @@ sub changed {
 
   my $ret = $self->{'dbh'}->func('pg_notifies')
     or return;
+  print STDERR scalar localtime(), ": Caught change for table $ret\n";
   $ret->[0] eq $self->{'table_name'} or return;
   $kernel->post($self->{'session'},
   				$self->{'event'});
