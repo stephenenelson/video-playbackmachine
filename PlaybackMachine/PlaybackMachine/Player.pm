@@ -70,9 +70,6 @@ sub _stop {
 ##   ARG0: $offset -- number of seconds after the movie's start to begin
 ##   ARG1: @filenames -- ARG1 onward contains the files to play, in order.
 ##
-## Currently, Xine_simple doesn't support playing multiple files, so
-## we'll just play the first one.
-##
 ## After Xine is started, we'll check on it every $XINE_CHECK_INTERVAL
 ## seconds to see if it has stopped.
 ##
@@ -83,16 +80,30 @@ sub _stop {
 ##       an error if so.
 ##
 sub play {
-  my ($kernel, $heap, $postback, $offset, $file) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2 ];
+  my ($kernel, $heap, $postback, $offset, @files) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2 .. $#_ ];
 
   $heap->{postback} = $postback;
 
-  defined $file or die "No files specified! stopped";
+  @files or die "No files specified! stopped";
 
-  xine_simple_play($file, $offset);
+  xine_simple_play(\@files, $offset);
 
   $kernel->delay( 'check_finished', XINE_CHECK_INTERVAL_SECS );
 
+}
+
+##
+## play_still()
+##
+## Arguments:
+##   STILL_FILE: Filename of our stillstore.
+## 
+## Responds to a 'play_still' request by playing a still frame
+## on Xine. The stillframe will remain there until something
+## replaces it.
+##
+sub play_still {
+  xine_simple_play_still($_[ARG0]);
 }
 
 ##
