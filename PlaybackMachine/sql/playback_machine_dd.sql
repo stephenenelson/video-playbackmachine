@@ -37,7 +37,7 @@ CREATE TABLE content_schedule (
 	id			int primary key DEFAULT nextval('schedule_id_seq'),
 	title 		text not null references contents,
 	schedule	text not null references schedules (name) ON DELETE CASCADE,
-	listed		boolean not null,
+	listed		boolean DEFAULT true,
 	start_time	timestamp not null
 );
 

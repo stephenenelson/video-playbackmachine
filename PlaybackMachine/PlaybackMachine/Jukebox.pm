@@ -14,6 +14,11 @@ use warnings;
 use Carp;
 
 use POE;
+use SDL;
+use SDL::Music;
+use SDL::Mixer;
+
+use IO::Dir;
 
 ############################# Class Constants #############################
 
@@ -24,7 +29,6 @@ use POE;
 ##
 ## Arguments: (hash)
 ##   song_chooser => Video::PlaybackMachine::NeophileChooser
-##   song_player => Video::PlaybackMachine::MusicPlayer
 ##   check_interval => int -- Number of seconds between checks on whether 
 ##                            we're playing
 sub new {
@@ -32,14 +36,32 @@ sub new {
   my (%in) = @_;
 
   my $self = {
-	      song_chooser => $in{song_chooser},
-	      song_player => $in{song_player},
-	      check_interval => $in{check_interval}
+	      directory => $in{song_dir},
+	      check_interval => 2
 	     };
+
+  $self->{'mixer'} = SDL::Mixer->new(
+				     -frequency => MIX_DEFAULT_FREQUENCY,
+				     -format => MIX_DEFAULT_FORMAT,
+				     -channels => MIX_DEFAULT_CHANNELS,
+				     -size => 4096
+				    );
 
   bless $self, $type;
 
 }
+
+############################## Event Handlers #############################
+
+sub start_music {
+  my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
+
+  my @music_files = $self->get_music_files();
+
+  $heap->{'music'} = SDL::Music->new( $self->get_music() );
+
+}
+
 
 ############################# Object Methods ##############################
 
@@ -51,10 +73,23 @@ sub spawn {
 					 _start => sub { }
 					},
 		       object_states => [
-					 
+					 $self => [ qw(start_music stop_music check_music) ]
 					]
 		      );
 
+}
+
+sub get_music_files {
+
+  my $dh = IO::Dir->new($self->{'directory'});
+  my @music_files = ();
+  while ( my $file = $dh->read() ) {
+    $file =~ /\.^/ and next;
+    -f $file or next;
+    push(@music_files, "$self->{'directory'}/$file");
+  }
+  return @music_files;
+  
 }
 
 
