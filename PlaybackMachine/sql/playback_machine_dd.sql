@@ -43,7 +43,9 @@ CREATE SEQUENCE schedule_id_seq;
 
 CREATE TABLE content_schedule (
 	id			int primary key DEFAULT nextval('schedule_id_seq'),
-	title 		text not null references av_files,
+	title 		text not null references av_files
+				ON DELETE CASCADE
+				ON UPDATE CASCADE,
 	schedule	text DEFAULT 'Baycon 2005' references schedules (name) 
 				ON DELETE CASCADE
 				ON UPDATE CASCADE,
@@ -91,3 +93,23 @@ CREATE TRIGGER content_check_overlap BEFORE INSERT OR UPDATE ON content_schedule
 	FOR EACH ROW EXECUTE PROCEDURE check_overlap();
 
 
+---
+--- Views
+---
+CREATE OR REPLACE VIEW fills AS
+	SELECT title, avfile_duration(title) AS duration
+	FROM fill_shorts;
+
+CREATE OR REPLACE VIEW fills AS
+	SELECT title, avfile_duration(title) AS duration
+	FROM contents;
+
+
+---
+--- Permissions
+---
+GRANT SELECT ON TABLE schedules TO apache;
+GRANT SELECT ON TABLE av_file_component TO apache;
+GRANT SELECT ON TABLE av_files TO apache;
+GRANT ALL ON TABLE schedule_id_seq TO apache;
+GRANT ALL ON TABLE content_schedule TO apache;
