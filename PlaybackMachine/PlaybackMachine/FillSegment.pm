@@ -28,7 +28,6 @@ use Carp;
 ##   sequence_order => int -- Where this segment will be played in break
 ##   priority_order => int -- Priority for segment if not enough time for all
 ##   producer => FillProducer
-##   multiple => boolean -- True if we should show as long as time avail, false otherwise
 ##
 sub new {
   my $type = shift;
@@ -39,7 +38,6 @@ sub new {
 	      sequence_order => $in{sequence_order},
 	      priority_order => $in{priority_order},
 	      producer => $in{producer},
-	      multiple => $in{multiple}
 	     };
 
   bless $self, $type;
