@@ -15,6 +15,7 @@ use warnings;
 use diagnostics;
 
 use Carp;
+use POSIX 'floor';
 
 ############################# Class Constants #############################
 
@@ -28,10 +29,13 @@ use Carp;
 ##
 sub new {
   my $type = shift;
-  my ($time) = @_;
+  my ($time, $max_iterations) = @_;
   defined $time or croak($type, "::new() called incorrectly");
 
-  my $self = { time => $time };
+  my $self = { 
+      time => $time,
+      max_iterations => $max_iterations
+	   };
   bless $self, $type;
   
 }
@@ -56,10 +60,30 @@ sub min_time {
 ##  TIME_LEFT
 ##
 ## Returns time for the number of granular events which can fit into
-## TIME_LEFT.
+## TIME_LEFT. If max_iterations was defined, returns the time for that
+## number of granular events.
 ##
-sub preferred_time { 
-  return int($_[0]->{time} / $_[1]) * $_[0]->{time};
+sub preferred_time {
+  my $self = shift;
+  my ($time_left) = @_;
+
+  my $req_events  = floor($time_left / $self->{'time'});
+
+  return $self->get_num_events($req_events) * $self->{time};
+}
+
+sub get_num_events {
+  my $self = shift;
+  my ($events) = @_;
+
+  if (defined $self->{'max_iterations'} &&
+      $events > $self->{'max_iterations'}) {
+    return $self->{'max_iterations'};
+  }
+  else {
+    return $events;
+  }
+
 }
 
 1;
