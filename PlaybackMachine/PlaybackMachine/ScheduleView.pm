@@ -80,7 +80,14 @@ sub get_schedule_table {
 sub get_next_entry {
   my $self = shift;
 
-  return scalar($self->{schedule_table}->get_entries_after( $self->stime(@_) ));
+  return $self->_do_get_next_entry($self->stime(@_));
+}
+
+sub _do_get_next_entry {
+  my $self = shift;
+  my ($time) = @_;
+
+  return scalar($self->{schedule_table}->get_entries_after($time) );
 }
 
 ##
@@ -91,7 +98,9 @@ sub get_time_to_next {
   my $self = shift;
   my $time = $self->stime(@_);
 
-  my $next_entry = $self->get_next_entry($time)
+  print STDERR scalar localtime $time, "\n";
+
+  my $next_entry = $self->_do_get_next_entry($time)
     or return;
 
   return $next_entry->get_start_time() - $time;

@@ -22,9 +22,9 @@ CREATE TABLE av_file_component (
 
 CREATE TABLE contents (
 	title		text primary key references av_files,
-	type		text not null references content_types,
-	director	text not null,
-	description	text not null
+	type		text,
+	director	text,
+	description	text
 );
 
 CREATE TABLE schedules (
@@ -41,60 +41,36 @@ CREATE TABLE content_schedule (
 	start_time	timestamp not null
 );
 
-CREATE TABLE fill_slide_categories (
-	category	text primary key
-);
-
-CREATE TABLE fill_base (
-	name		text primary key
-);
-
-CREATE TABLE fill_played (
-	fill_name	text references fill_base (name),
-	schedule	text references schedules (name),
-	last_played	timestamp not null
-);
-
-CREATE TABLE fill_shorts (
-	title		text references av_files
-) INHERITS (fill_base);
-
-CREATE TABLE fill_slides (
-	file		text not null,
-	category	text references fill_slide_categories,
-	frequency	interval not null
-) INHERITS (fill_base);
+CREATE FUNCTION avfile_duration(text) RETURNS interval AS '
+DECLARE
+total_length INTERVAL;
+stitle ALIAS FOR $1;
+BEGIN
+	select sum(duration) into total_length from av_file_component 
+		where title = stitle;
+	RETURN total_length;
+END
+' LANGUAGE 'plpgsql';
 
 CREATE FUNCTION stop_time(text,timestamp) RETURNS timestamp AS '
 DECLARE
-total_length INTERVAL;
+stitle ALIAS FOR $1;
+start_time ALIAS FOR $2;
 BEGIN
-	select sum(duration) into total_length from av_file_component 
-		where title = $1;
-	RETURN $2 + total_length;
+	RETURN start_time + avfile_duration(stitle);
 END
 ' LANGUAGE 'plpgsql';
+
 
 CREATE FUNCTION check_overlap() RETURNS TRIGGER AS '
 BEGIN
 	IF EXISTS( SELECT id FROM content_schedule
 		WHERE schedule = NEW.schedule
-			AND (
-				-- Conflicts with something starting after
-				( stop_time(NEW.title,NEW.start_time) >= start_time and stop_time(NEW.title,NEW.start_time) <= stop_time(title,start_time) ) or
-
-				-- Conflicts with something starting before
-				( NEW.start_time >= start_time and NEW.start_time <= stop_time(title,start_time) ) or
-
-				-- Something would be entirely contained or equal
-				( NEW.start_time <= start_time and stop_time(NEW.title, NEW.start_time) >= stop_time(title, start_time) )
-
-				) 
-		)
+			AND overlaps(NEW.start_time, avfile_duration(NEW.title), start_time, avfile_duration(title))
+	)
 	THEN
 		RAISE EXCEPTION ''Schedule entry conflicts with existing entry'';
 	END IF;
-
 	RETURN NEW;
 END;
 ' LANGUAGE 'plpgsql';

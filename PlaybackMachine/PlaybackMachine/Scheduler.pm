@@ -16,6 +16,8 @@ use POE::Session;
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
 use Video::PlaybackMachine::ScheduleView;
 
+use Carp;
+
 ############################# Class Constants #############################
 
 use constant DEFAULT_SKIP_TOLERANCE => 30;
@@ -63,7 +65,8 @@ sub new {
 	      mode => START_MODE,
 	      offset => $in{offset},
 	      minimum_fill => $Minimum_Fill,
-	      schedule_view => Video::PlaybackMachine::ScheduleView->new($in{schedule_table}, $in{offset})
+	      schedule_view => Video::PlaybackMachine::ScheduleView->new($in{schedule_table}, $in{offset}),
+	      watcher_session => $in{watcher},
 	     };
 
   bless $self, $type;
@@ -431,6 +434,9 @@ sub shutdown {
     # Terminate Player and Filler
     $kernel->post($heap->{player_session}, 'shutdown');
     $kernel->post($heap->{filler_session}, 'shutdown');
+
+    # Terminate Watcher if defined
+    $kernel->post($self->{'watcher_session'}, 'shutdown');
 
     delete $heap->{$_} foreach keys %$heap;
 

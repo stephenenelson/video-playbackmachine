@@ -58,15 +58,5 @@ sub is_available { }
 ##
 sub has_audio { }
 
-##
-## get_next()
-##
-## Arguments:
-##   CURRENT_IDX -- int
-##
-## Returns whatever the next thing in the order to play should
-## be, given the current one.
-##
-sub get_next { }
 
 1;

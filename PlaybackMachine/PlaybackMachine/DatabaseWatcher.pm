@@ -37,8 +37,9 @@ sub new {
 		    dbh => $in{'dbh'},
 		    table_name => $in{'table_name'},
 		    session => $in{'session'},
-            event => $in{'event'}
+		    event => $in{'event'}
 		   };
+	bless $self, $type;
 }
 
 ###################### Session Methods ##########################
@@ -49,13 +50,13 @@ sub _start {
   # Watch for incoming messages from the database
   my $fd = $self->{'dbh'}->func('getfd');
   my $fh = IO::Handle->new();
-  $fh->fdopen($fd)
+  $fh->fdopen($fd, 'r')
     or die "Couldn't open file descriptor '$fd': $!";
   $kernel->select_read($fh, 'changed');
   $heap->{'fh'} = $fh;
 }
 
-sub _stop {
+sub shutdown {
   my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
   my $fh = $heap->{'fh'};
   $kernel->select_read($fh);
@@ -74,6 +75,7 @@ sub changed {
   
 }
 
+
 ###################### Object Methods ###########################
 
 sub spawn {
@@ -81,9 +83,10 @@ sub spawn {
 
   POE::Session->create(
 		       object_states => [
-					 $self => [ qw(_start _stop changed) ]
+					 $self => [ qw(_start changed shutdown) ]
 					]
 		      );
 }
 
 
+1;

@@ -32,9 +32,9 @@ sub new {
   my %in = @_;
   my $self = $type->SUPER::new(@_);
   UNIVERSAL::isa($in{av_files}, 'ARRAY')
-    or croak("$type::new(): Argument '$in{av_files}' for 'av_files' must be an array reference; stopped");
+    or croak("${type}::new(): Argument '$in{av_files}' for 'av_files' must be an array reference; stopped");
   @{ $in{av_files} } > 0
-    or croak("$type::new(): Must have at least one AV::File object");
+    or confess("${type}::new(): Must have at least one AV::File object");
   foreach (@{ $in{av_files} } ){
     UNIVERSAL::isa($_, 'Video::PlaybackMachine::AVFile')
       or croak("$type::new(): Argument '$_' is not an AVFile object");
