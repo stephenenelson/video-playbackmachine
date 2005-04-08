@@ -63,10 +63,10 @@ sub _start {
 
 sub shutdown {
   my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
-  my $fh = $heap->{'fh'};
+  my $fh = $heap->{'fh'} or return;
+  $self->{'logger'}->debug("End watching table $self->{'table_name'}");
   $kernel->select_read($fh);
   delete $heap->{'fh'};
-  $fh->close();
 }
 
 sub changed {
