@@ -13,29 +13,16 @@ our @EXPORT_OK = qw(PLAYER_STATUS_STOP PLAYER_STATUS_PLAY PLAYER_STATUS_STILL
                     PLAYBACK_OK PLAYBACK_ERROR PLAYBACK_STOPPED);
 
 use POE;
-use POE::Wheel::Run;
-use Xine_simple qw(:all);
+use X11::FullScreen;
+use Video::Xine;
 use Log::Log4perl;
-
-use SDL;
-use SDL::Music;
-use SDL::Mixer;
+use Carp;
 
 ############################# Class Constants ################################
-
-## How often to check to see if Xine has stopped, in seconds
-use constant XINE_CHECK_INTERVAL_SECS => 2;
-
-## How often to check if music has stopped, in seconds
-use constant MUSIC_CHECK_INTERVAL => 3;
-
-## How long, in milliseconds, to fade out music
-use constant MUSIC_FADE_MILLIS => 250;
 
 ## Status codes Xine will report
 use constant PLAYER_STATUS_STOP => 0;
 use constant PLAYER_STATUS_PLAY => 1;
-use constant PLAYER_STATUS_STILL => 2;
 
 ## How-the-movie-played status codes
 
@@ -45,9 +32,11 @@ use constant PLAYBACK_OK => 1;
 # ERROR == problem in trying to play
 use constant PLAYBACK_ERROR => 2;
 
-# STOPPED == manually stopped or preempted by something else. Don't
-# try to play anything else. (Mostly for music or slides.)
-use constant PLAYBACK_STOPPED => 3;
+use constant X_DISPLAY => ':0.0';
+
+## Types of playback
+use constant PLAYBACK_TYPE_MUSIC => 0;
+use constant PLAYBACK_TYPE_MOVIE => 1;
 
 ############################## Class Methods #################################
 
@@ -61,7 +50,6 @@ sub new {
   my $type = shift;
 
   my $self = {
-	      music_check_interval => MUSIC_CHECK_INTERVAL,
 	      logger => Log::Log4perl->get_logger('Video.PlaybackMachine.Player'),
 	     };
 
@@ -79,20 +67,24 @@ sub _start {
   my $kernel = $_[KERNEL];
 
   $kernel->alias_set('Player');
-  xwindows_init();
-
- 
-}
-
-##
-## Clean up after Xine.
-##
-sub _stop {
-  if ( $_[OBJECT]->get_status() == PLAYER_STATUS_PLAY ) {
-    xine_simple_stop();
-  }
-  delete $_[HEAP]->{'mixer'};
-  xwindows_cleanup();
+  my $display = X11::FullScreen::Display->new(X_DISPLAY);
+  $_[HEAP]->{'display'} = $display;
+  $_[HEAP]->{'window'} = $display->createWindow();
+  $display->sync();
+  my $xine = Video::Xine->new();
+  $_[HEAP]->{'xine'} = $xine;
+  my $x11_visual = Video::Xine::Util::make_x11_visual($display,
+						      $display->getDefaultScreen(),
+						      $_[HEAP]->{'window'},
+						      $display->getWidth(),
+						      $display->getHeight(),
+						      $display->getPixelAspect()
+						     );
+  my $driver = Video::Xine::Driver::Video->new($xine,"auto",1,$x11_visual);
+  $_[HEAP]->{'stream'} = $xine->stream_new(undef, $driver)
+    or croak "Unable to open video stream";
+  $_[HEAP]->{'stream_queue'} =
+    Video::PlaybackMachine::Player::EventWheel->new($_[HEAP]{'stream'});
 }
 
 ##
@@ -106,33 +98,39 @@ sub _stop {
 ## seconds to see if it has stopped.
 ##
 sub play {
-  my ($kernel, $heap, $postback, $offset, @files) = @_[KERNEL, HEAP, ARG0, ARG1, ARG2 .. $#_ ];
-
-  $heap->{postback} = $postback;
+  my ($kernel, $self, $heap, $postback, $offset, @files) = @_[KERNEL, OBJECT, HEAP, ARG0, ARG1, ARG2 .. $#_ ];
 
   defined $offset or $offset = 0;
 
+  my $log = $_[OBJECT]{'logger'};
+
   @files or die "No files specified! stopped";
 
-  # Stop music before a movie
-  if (xine_simple_get_music_status() == 1) {
-
-
-    xine_simple_stop();
-    xine_simple_cleanup();
-
-    my $postback = delete $heap->{'music_postback'};
-    $kernel->alarm('check_music_finished');
-    $postback->(PLAYBACK_STOPPED);
+  # Stop if we're playing
+  if ( $heap->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
+    $heap->{'stream'}->stop();
+    $heap->{'stream'}->close();
   }
 
-  $_[OBJECT]{'logger'}->info("Playing ($offset):" . join(' ', @files));
+  $log->info("Playing ($offset): $files[0]");
 
-  xine_simple_init();
+  my $s = $_[HEAP]->{'stream'};
+  $s->open($files[0])
+    or do {
+      $log->error("Unable to open '$files[0]': Error " . $s->get_error());
+      $postback->(PLAYBACK_ERROR);
+      return;
+    };
+  $s->play(0,$offset * 1000)
+    or do {
+      $log->error("Unable to play '$files[0]': Error " . $s->get_error());
+      $postback->(PLAYBACK_ERROR);
+      return;
+    };
 
-  xine_simple_play(\@files, $offset * 1000);
-
-  $kernel->delay( 'check_finished', XINE_CHECK_INTERVAL_SECS );
+  # Spawn a watcher to call the postback after the fact
+  $heap->{'stream_queue'}->set_stop_handler($postback);
+  $heap->{'stream_queue'}->spawn();
 
 }
 
@@ -148,7 +146,9 @@ sub play {
 ##
 sub play_still {
     $_[OBJECT]{'logger'}->debug("Showing '$_[ARG0]'");
-    xine_simple_play_still($_[ARG0]);
+    eval {
+      $_[HEAP]{'display'}->displayStill($_[HEAP]{'window'}, $_[ARG0]);
+    }
 }
 
 ##
@@ -158,9 +158,10 @@ sub play_still {
 ##  ARG0 -- callback. What to call when the music's over.
 ##  ARG1 -- song file. Filename of the song to play.
 ##
-## Responds to a 'play_music' request by playing a particular song
-## using the SDL libraries. SDL can play mp3 or ogg files.  Logs a
-## warning and does nothing if we tried to play music during a movie.
+## Responds to a 'play_music' request by playing a particular song.
+## Logs a warning and does nothing if we tried to play music during a
+## movie. If a song was already playing, lets it play, but substitutes
+## the current callback.
 ##
 sub play_music {
   my ($self, $heap, $kernel, $callback, $song_file) = @_[OBJECT,HEAP,KERNEL,ARG0,ARG1];
@@ -168,65 +169,28 @@ sub play_music {
 
   defined $song_file or die "Must define song file!\n";
 
+  # If there's a movie running, let it play
   if ($self->get_status() == PLAYER_STATUS_PLAY) {
     $self->{'logger'}->warn("Attempted to play '$song_file' while a movie is playing");
     $callback->(PLAYBACK_ERROR);
     return;
   }
-
-  # If the music is already playing, let it play, but substitute this callback
-  elsif ($heap->{'music_postback'}) {
-    $heap->{'music_postback'} = $callback;
-    return;
-  }
   else {
-
-    $heap->{'music_postback'} = $callback;
-
-    $self->{'logger'}->info("Starting song '$song_file'");
-
-    xine_simple_play_music($song_file);
-    $kernel->delay('check_music_finished', MUSIC_CHECK_INTERVAL);
-
+    
+    $heap->{'stream'}->open($song_file)
+      or do {
+	$self->{'logger'}->warn("Unable to play '$song_file'");
+	$callback->(PLAYBACK_ERROR);
+	return;
+      };
+    $heap->{'stream'}->play(0,0);
+    $heap->{'stream_queue'}->set_stop_handler($callback);
+    $heap->{'stream_queue'}->spawn();
   }
-}
 
-sub check_music_finished {
-  my ($heap, $kernel) = @_[HEAP,KERNEL];
-
-
-  $heap->{'music_postback'} or die "Called 'check_music_finished' without a postback\n";
-
-  if ( xine_simple_get_music_status() == 1 ) {
-    $kernel->delay('check_music_finished', MUSIC_CHECK_INTERVAL);
-  }
-  else {
-    xine_simple_stop();
-    xine_simple_cleanup();
-    my $postback = delete $heap->{'music_postback'};
-    $kernel->alarm('check_music_finished');
-    $postback->(PLAYBACK_OK);
-  }
 }
 
 
-##
-## Responds to a 'check_finished' request by checking to see if
-## Xine is playing a movie. If not, fires a 'finished' event at the scheduler.
-## If so, tells itself to check again in XINE_CHECK_INTERVAL_SECS seconds.
-##
-sub check_finished {
-  my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
-
-  if ( $self->get_status() == PLAYER_STATUS_PLAY ) {
-    $kernel->delay( 'check_finished', XINE_CHECK_INTERVAL_SECS );
-  }
-  else {
-    my $postback = delete $heap->{postback};
-    xine_simple_cleanup();
-    $postback->(PLAYBACK_OK);
-  }
-}
 
 
 ############################## Object Methods ################################
@@ -238,19 +202,17 @@ sub check_finished {
 ##
 sub spawn {
   my $self = shift;
+  my ($finish_callback) = @_;
 
   POE::Session->create(
 		       object_states => 
-		       [ 
+		       [
 			$self => [
 				  qw(_start
-                                     _stop
                                      play
                                      play_still
-                                     check_finished
 				     play_music
-				     check_music_finished
-                                  ) 
+                                  )
 				 ] ,
 		       ],
 		     );
@@ -260,12 +222,96 @@ sub spawn {
 ## get_status()
 ##
 ## Returns one of:
-##   PLAYER_STATUS_PLAY if a movie is playing
-##   PLAYER_STATUS_STILL if a still image is on the screen
+##   PLAYER_STATUS_PLAY if a movie (or music) is playing
 ##   PLAYER_STATUS_STOP if nothing is playing.
 ##
 sub get_status {
   my $self = shift;
 
-  return xine_simple_get_status();
+  my $heap = $poe_kernel->get_active_session()->get_heap();
+
+  $heap->{'stream'}->get_status() == XINE_STATUS_PLAY
+    and return PLAYER_STATUS_PLAY;
+
+  return PLAYER_STATUS_STOP;
 }
+
+
+package Video::PlaybackMachine::Player::EventWheel;
+
+###
+### When spawned, these will pass along events from the given
+### streams to the appropriate callbacks.
+###
+
+use strict;
+use POE;
+use Video::Xine;
+
+## How often to check to see if Xine has stopped, in seconds
+use constant XINE_CHECK_INTERVAL_SECS => 2;
+
+sub new {
+  my $type = shift;
+  my ($stream, %handlers) = @_;
+
+  my $self = {
+	      stream => $stream,
+	      handlers => { %handlers }
+	     };
+
+  bless $self, $type;
+}
+
+sub spawn {
+  my $self = shift;
+  my ($callback) = @_;
+
+  POE::Session->create(
+		       object_states => [$self=>[qw(_start get_events)]]
+		      );
+}
+
+sub _start {
+  my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
+
+  $heap->{queue} = Video::Xine::Event::Queue->new($self->{'stream'})
+    or die "Couldn't create Xine::Event::Queue";
+
+  $kernel->yield('get_events');
+}
+
+sub get_events {
+  my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
+
+  # Translate all events into callbacks
+  while ( my $event = $heap->{queue}->get_event() ) {
+    if ( $event->get_type() == XINE_EVENT_UI_PLAYBACK_FINISHED ) {
+      $self->{'stream'}->close();
+    }
+    if ( exists $self->{'handlers'}{$event->get_type()} ) {
+      $self->{'handlers'}{$event->get_type()}->($self->{'stream'}, $event);
+    }
+  }
+
+  # Keep checking so long as we're playing
+  if ( $self->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
+    $kernel->delay('get_events', XINE_CHECK_INTERVAL_SECS);
+  }
+  else {
+    delete $heap->{queue};
+  }
+}
+
+sub set_handler {
+  my $self = shift;
+  my ($event, $callback) = @_;
+  $self->{'handlers'}{$event} = $callback;
+}
+
+
+# Convenience method
+sub set_stop_handler {
+  $_[0]->set_handler(XINE_EVENT_UI_PLAYBACK_FINISHED, $_[1]);
+}
+
