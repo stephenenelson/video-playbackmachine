@@ -474,12 +474,15 @@ sub shutdown {
     # Pull in the shingle
     $kernel->alias_remove('Scheduler');
 
+    # Terminate Watcher if defined
+    $kernel->post($self->{'watcher_session'}, 'shutdown');
+
     # Terminate Player and Filler
     $kernel->post($heap->{player_session}, 'shutdown');
     $kernel->post($heap->{filler_session}, 'shutdown');
 
-    # Terminate Watcher if defined
-    $kernel->post($self->{'watcher_session'}, 'shutdown');
+    # Stop watching for 'finished' events
+    $kernel->state('finished');
 
     delete $heap->{$_} foreach keys %$heap;
 
