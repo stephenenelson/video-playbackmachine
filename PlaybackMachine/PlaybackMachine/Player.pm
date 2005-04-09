@@ -216,6 +216,7 @@ sub spawn {
 				 ] ,
 		       ],
 		     );
+
 }
 
 ##
@@ -257,7 +258,8 @@ sub new {
 
   my $self = {
 	      stream => $stream,
-	      handlers => { %handlers }
+	      handlers => { %handlers },
+	      logger => Log::Log4perl->get_logger('Video.PlaybackMachine.Player.EventWheel'),	     
 	     };
 
   bless $self, $type;
@@ -286,10 +288,12 @@ sub get_events {
 
   # Translate all events into callbacks
   while ( my $event = $heap->{queue}->get_event() ) {
+    $self->{'logger'}->debug("Received event: ", $event->get_type(), "\n");
     if ( $event->get_type() == XINE_EVENT_UI_PLAYBACK_FINISHED ) {
       $self->{'stream'}->close();
     }
     if ( exists $self->{'handlers'}{$event->get_type()} ) {
+      $self->{'logger'}->debug("Invoking handler for ", $event->get_type(), "\n");
       $self->{'handlers'}{$event->get_type()}->($self->{'stream'}, $event);
     }
   }
