@@ -98,6 +98,8 @@ sub is_available {
 ##
 ## Displays a set of random still frames.
 ##
+# TODO: May be able to eliminate all POE code except for Player post
+# by turning the mechanism into a repeated subroutine call.
 sub show_slide {
   my ($self, $kernel, $heap) = @_[OBJECT,KERNEL,HEAP];
 
@@ -161,7 +163,7 @@ sub next_song {
 
 sub song_done {
     $_[OBJECT]{'logger'}->debug("Song done");
-    my ($status) = @{ $_[ARG1] };
+    my ($stream, $status) = @{ $_[ARG1] };
   if ($status == PLAYBACK_OK()) {
       $_[OBJECT]{'logger'}->debug("Returned OK, playing next song");
       $_[KERNEL]->yield('next_song');
