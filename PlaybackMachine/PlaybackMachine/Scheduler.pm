@@ -48,6 +48,7 @@ use constant PLAY_MODE => 3;
 
 ## Auto-restart interval-- Minimum number of seconds between restarts
 use constant RESTART_INTERVAL => 7 * 60 * 60;
+#use constant RESTART_INTERVAL => 7;
 
 ############################## Class Methods ##############################
 
@@ -136,9 +137,9 @@ sub get_mode {
 ##
 sub should_be_playing {
   my $self = shift;
-  my $now = $self->stime(@_);
+  my $schedule_now = $self->real_to_schedule(@_);
 
-  my $current = $self->{schedule_view}->get_schedule_table()->get_entry_during($now);
+  my $current = $self->{schedule_view}->get_schedule_table()->get_entry_during($schedule_now);
 
   # If there's no entry to play right now, return nothing
   defined($current) or return;
@@ -171,11 +172,6 @@ sub get_seek {
 }
 
 
-sub stime {
-  my $self = shift;
-  return $self->{schedule_view}->stime(@_);
-}
-
 sub get_next_entry {
   my $self = shift;
   return $self->{schedule_view}->get_next_entry(@_);
@@ -186,6 +182,16 @@ sub get_time_to_next {
   return $self->{schedule_view}->get_time_to_next(@_);
 }
 
+sub schedule_to_real {
+  my $self = shift;
+  return $self->{'schedule_view'}->schedule_to_real(@_);
+}
+
+sub real_to_schedule {
+  my $self = shift;
+  return $self->{'schedule_view'}->real_to_schedule(@_);
+}
+
 
 ##
 ## Returns the amount of time required to skip to play
@@ -194,7 +200,7 @@ sub get_time_to_next {
 sub time_skip {
   my $self = shift;
   my $movie = shift;
-  my $time = $self->stime(@_);
+  my $time = $self->real_to_schedule(@_);
 
   my $diff = $self->get_time_to_next(@_);
 
@@ -297,8 +303,11 @@ sub finished {
   # If we've been running longer than the restart interval, restart the system
   if ( ($now - $^T) > RESTART_INTERVAL ) {
     my $table = $self->{'schedule_table'};
-    my @restart_args = ($^X, $0, $table->get_schedule_name(), 'epoch ' . ($self->{'offset'} + time()));
-    $self->{'logger'}->info("Restarted $0 with command line ", join(' ', @restart_args));
+    my $new_offset = $self->{'offset'} - (time() - $^T);
+    my @restart_args = ($^X, $0, 
+			"--offset=$new_offset",
+			$table->get_schedule_name() );
+    $self->{'logger'}->info("Restarted $0 with command line ", join(' ', map {"'$_'"} @restart_args));
     exec(@restart_args);
   }
 
@@ -422,7 +431,8 @@ sub play_scheduled {
 sub wait_for_scheduled {
   my ($self, $kernel) = @_[OBJECT, KERNEL];
 
-  defined $self->get_time_to_next() or die "Called wait_for_scheduled with nothing to wait for";
+  defined $self->get_time_to_next()
+    or $self->{'logger'}->logdie("Called wait_for_scheduled with nothing to wait for; schedule time is " . scalar localtime($self->real_to_schedule()) );
 
   # If there's enough time before the next item to bother with fill
   if ( $self->get_time_to_next() > $self->{minimum_fill} ) {
@@ -452,7 +462,7 @@ sub schedule_next {
   if ( my $entry = $self->get_next_entry() ) {
 
      # Set an alarm to play it
-    my $alarm_offset = $self->{'schedule_view'}->stime($entry->get_start_time());
+    my $alarm_offset = $self->{'schedule_view'}->schedule_to_real($entry->get_start_time());
     my $in_time = $alarm_offset - time();
 
     ($in_time >= 0) 

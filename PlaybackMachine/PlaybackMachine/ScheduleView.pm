@@ -12,6 +12,7 @@ package Video::PlaybackMachine::ScheduleView;
 use strict;
 use warnings;
 use Carp;
+use Log::Log4perl;
 
 ############################# Class Constants #############################
 
@@ -36,7 +37,8 @@ sub new {
 
   my $self = {
 	      schedule_table => $schedule_table,
-	      offset => $offset
+	      offset => $offset,
+	      logger => Log::Log4perl->get_logger('Video.PlaybackMachine.ScheduleView')
 	     };
 
   bless $self, $type;
@@ -49,13 +51,23 @@ sub new {
 ## offset. If no arguments, returns the current time
 ## corrected for schedule offset.
 ##
-sub stime {
+# Note: Currently the offset is positive for the past, negative for
+# the future.
+sub real_to_schedule {
   my $self = shift;
-  my ($time) = @_;
+  my ($real_time) = @_;
 
-  defined $time or $time = CORE::time();
-  return $time - $self->{offset};
+  defined $real_time or $real_time = CORE::time();
+  return $real_time - $self->{offset};
 
+}
+
+sub schedule_to_real {
+  my $self = shift;
+  my ($schedule_time) = @_;
+
+  defined $schedule_time or return CORE::time();
+  return $schedule_time + $self->{'offset'};
 }
 
 ##
@@ -79,19 +91,21 @@ sub get_schedule_table {
 ##
 sub get_next_entry {
   my $self = shift;
-  my ($time) = @_;
-  defined $time or $time = time();
+  my ($real_time) = @_;
+  defined $real_time or $real_time = time();
 
-  return $self->_do_get_next_entry($time);
+  return $self->_do_get_next_entry($real_time);
 }
 
 sub _do_get_next_entry {
   my $self = shift;
-  my ($time) = @_;
+  my ($real_time) = @_;
 
-  my $corr_time = $time + $self->{'offset'};
-
-  return scalar($self->{schedule_table}->get_entries_after($corr_time + 1) );
+  return scalar($self->{schedule_table}
+		->get_entries_after(
+				    $self->real_to_schedule($real_time + 1) 
+				   )
+		);
 }
 
 ##
@@ -100,12 +114,12 @@ sub _do_get_next_entry {
 ##
 sub get_time_to_next {
   my $self = shift;
-  my $time = time();
+  my $real_time = time();
 
-  my $next_entry = $self->_do_get_next_entry($time)
+  my $next_entry = $self->_do_get_next_entry($real_time)
     or return;
 
-  return $self->stime($next_entry->get_start_time()) - $time;
+  return $next_entry->get_start_time() - $self->real_to_schedule($real_time);
 
 }
 
@@ -116,7 +130,7 @@ sub get_seek {
   my $self = shift;
   my $entry = shift;
 
-  my $seek = $self->stime() - $entry->get_start_time();
+  my $seek = time() - $self->schedule_to_real($entry->get_start_time());
   return ($seek > 0) ? $seek : 0;
 
 }
