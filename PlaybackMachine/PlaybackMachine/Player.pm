@@ -132,6 +132,8 @@ sub play {
   $heap->{'stream_queue'}->set_stop_handler($postback);
   $heap->{'stream_queue'}->spawn();
 
+  $heap->{'playback_type'} = PLAYBACK_TYPE_MOVIE;
+
 }
 
 ##
@@ -145,10 +147,31 @@ sub play {
 ## replaces it.
 ##
 sub play_still {
-    $_[OBJECT]{'logger'}->debug("Showing '$_[ARG0]'");
-    eval {
-      $_[HEAP]{'display'}->displayStill($_[HEAP]{'window'}, $_[ARG0]);
-    }
+  my ($self, $kernel, $heap, $still, $callback, $time) = @_[OBJECT, KERNEL, HEAP, ARG0, ARG1];
+  my $log = $self->{'logger'};
+  $log->debug("Showing '$_[ARG0]'");
+  eval {
+    $heap->{'display'}->displayStill($heap->{'window'}, $still);
+  };
+  if ($@) {
+    $log->error("Error displaying still '$still': $@");
+    $callback->(PLAYBACK_ERROR);
+  }
+
+  if (defined $time) {
+    POE::Session->create(
+			 inline_states => {
+					   _start => sub {
+					     $_[KERNEL]->delay('end_delay', $time);
+					   },
+					   end_delay => sub {
+					     $log->debug("Still playback finished for '$still'");
+					     $callback->($still, PLAYBACK_OK);
+					   }
+					  }
+			);
+  }
+
 }
 
 ##
@@ -165,31 +188,36 @@ sub play_still {
 ##
 sub play_music {
   my ($self, $heap, $kernel, $callback, $song_file) = @_[OBJECT,HEAP,KERNEL,ARG0,ARG1];
+
   defined $callback or die "Must define callback!\n";
 
   defined $song_file or die "Must define song file!\n";
 
   # If there's a movie running, let it play
   if ($self->get_status() == PLAYER_STATUS_PLAY) {
-    $self->{'logger'}->warn("Attempted to play '$song_file' while a movie is playing");
-    $callback->(PLAYBACK_ERROR);
-    return;
+    if ($heap->{'playback_type'} == PLAYBACK_TYPE_MOVIE) {
+      $self->{'logger'}->warn("Attempted to play '$song_file' while a movie is playing");
+      $callback->($heap->{'stream'}, PLAYBACK_ERROR);
+      return;
+    }
+    else {
+      $heap->{'stream_queue'}->set_stop_handler($callback);
+    }
   }
   else {
-    
+    $self->{'logger'}->debug("Playing music file '$song_file'");
     $heap->{'stream'}->open($song_file)
       or do {
 	$self->{'logger'}->warn("Unable to play '$song_file'");
-	$callback->(PLAYBACK_ERROR);
+	$callback->($heap->{'stream'}, PLAYBACK_ERROR);
 	return;
       };
     $heap->{'stream'}->play(0,0);
     $heap->{'stream_queue'}->set_stop_handler($callback);
     $heap->{'stream_queue'}->spawn();
+    $heap->{'playback_type'} = PLAYBACK_TYPE_MUSIC;
   }
-
 }
-
 
 
 
@@ -257,6 +285,7 @@ sub new {
   my ($stream, %handlers) = @_;
 
   my $self = {
+	      type => $type,
 	      stream => $stream,
 	      handlers => { %handlers },
 	      logger => Log::Log4perl->get_logger('Video.PlaybackMachine.Player.EventWheel'),	     
