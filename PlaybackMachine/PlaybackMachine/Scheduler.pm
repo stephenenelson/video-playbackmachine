@@ -303,9 +303,9 @@ sub finished {
   # If we've been running longer than the restart interval, restart the system
   if ( ($now - $^T) > RESTART_INTERVAL ) {
     my $table = $self->{'schedule_table'};
-    my $new_offset = $self->{'offset'} - (time() - $^T);
+    my $new_offset = $table->db_schedule_time($self->{'offset'});
     my @restart_args = ($^X, $0, 
-			"--offset=$new_offset",
+			"--start=$new_offset",
 			$table->get_schedule_name() );
     $self->{'logger'}->info("Restarted $0 with command line ", join(' ', map {"'$_'"} @restart_args));
     exec(@restart_args);
@@ -353,6 +353,8 @@ sub finished {
 
       # If there's enough time to start filling
       if ( $self->get_time_to_next($now) > $self->{minimum_fill} ) {
+
+	$self->{'logger'}->debug("Not filling: " . $self->get_time_to_next($now) . " too short for fill\n");
 
 	# Fill until next scheduled entry
 	$kernel->yield('wait_for_scheduled');
