@@ -249,7 +249,7 @@ sub _start {
 ## with the call() command.
 ##
 sub query_next_scheduled {
-  return $_[OBJECT]->get_next_entry($_[ARG0]);
+  return $_[OBJECT]->get_next_entry(undef,$_[ARG0]);
 }
 
 ##
