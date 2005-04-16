@@ -98,7 +98,7 @@ sub spawn {
 
   POE::Session->create(
 		       object_states => [ 
-					 $self => [qw(_start finished update play_scheduled warning_scheduled schedule_next shutdown wait_for_scheduled)]
+					 $self => [qw(_start finished update play_scheduled warning_scheduled schedule_next shutdown wait_for_scheduled query_next_scheduled)]
 					],
 		       );
 }
@@ -239,6 +239,17 @@ sub _start {
   # Check the database for things that need playing
   $kernel->yield('update');
 
+}
+
+##
+## query_next_scheduled()
+##
+## Designed to be called and return the next item on the schedule.
+## Although this is a POE event handler, it's useful only when called
+## with the call() command.
+##
+sub query_next_scheduled {
+  return $_[OBJECT]->get_next_entry($_[ARG0]);
 }
 
 ##
