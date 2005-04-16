@@ -23,12 +23,10 @@ use POSIX qw(strftime);
 ## new()
 ##
 ## Arguments: (hash)
-##  table => ScheduleTable -- source of the movies
 ##  time => int -- time in seconds image should be displayed
 ##
 sub new {
   my $type = shift;
-  my %in = ();
 
   my $self = $type->SUPER::new(@_);
 
