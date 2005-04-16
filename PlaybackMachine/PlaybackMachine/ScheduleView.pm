@@ -91,19 +91,20 @@ sub get_schedule_table {
 ##
 sub get_next_entry {
   my $self = shift;
-  my ($real_time) = @_;
+  my ($real_time, $num_entries) = @_;
   defined $real_time or $real_time = time();
 
-  return $self->_do_get_next_entry($real_time);
+  return $self->_do_get_next_entry($real_time, $num_entries);
 }
 
 sub _do_get_next_entry {
   my $self = shift;
-  my ($real_time) = @_;
+  my ($real_time, $num_entries) = @_;
 
   return scalar($self->{schedule_table}
 		->get_entries_after(
-				    $self->real_to_schedule($real_time + 1) 
+				    $self->real_to_schedule($real_time + 1),
+				    $num_entries
 				   )
 		);
 }
