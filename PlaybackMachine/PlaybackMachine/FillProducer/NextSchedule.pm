@@ -43,13 +43,13 @@ sub add_text {
 
   my $entries = $poe_kernel->call('Scheduler', 'query_next_scheduled', 5)
     or return;
-  my $text = '';
+  my @lines = ();
   foreach my $entry (@$entries) {
-    my $next_time = strftime '%l:%M', localtime ($entry->get_start_time());
-    $text .= "$next_time   " . $entry->getTitle() . "\n";
+    my $next_time = strftime '%H:%M', localtime ($entry->get_start_time());
+    push(@lines, "$next_time   " . $entry->getTitle() . "\n");
   }
 
-  $self->write_centered($image, $text);
+  $self->write_centered_block($image, @lines);
 
 
 }
