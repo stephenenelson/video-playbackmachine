@@ -28,9 +28,31 @@ our @Text_Color = (0,255,255,255);
 
 our @Font_Path = qw(/usr/share/fonts/bitstream-vera);
 
-our $Font = "Vera/40";
+our $Font = "Vera";
+
+our $Font_Size = "40";
 
 ############################## Class Methods ##############################
+
+##
+## new()
+##
+## Arguments: (hash)
+##  font => string  -- name of truetype font (i.e "Vera")
+##  font_size => integer -- size of truetype font
+##
+sub new {
+  my $type = shift;
+  my $self = $type->SUPER::new(@_);
+  my %in = @_;
+  $self->{'font'} = defined $in{font} ? $in{font} : $Font;
+  $self->{'font_size'} = defined $in{font_size} ? $in{font_size} : $Font_Size;
+  return $self;
+}
+
+
+############################# Object Methods ##############################
+
 
 ##
 ## start()
@@ -53,6 +75,19 @@ sub start {
 
 }
 
+sub get_font {
+  return $_[0]{'font'};
+}
+
+sub get_font_size {
+  return $_[0]{'font_size'};
+}
+
+sub get_font_string {
+  my $self = shift;
+  return $self->get_font() . '/' . $self->get_font_size();
+}
+
 
 ##
 ## create_image()
@@ -66,11 +101,59 @@ sub create_image {
   $image->fill_rectangle(0,0,$Width,$Height);
   
   $image->set_color(@Text_Color);
-
   $image->add_font_path(@Font_Path);
-  $image->load_font($Font);
+  $image->load_font($self->get_font_string() );
 
   return $image;
+}
+
+sub max_width {
+  my $self = shift;
+  my ($image, @lines) = @_;
+
+  my $max = 0;
+  foreach my $line (@lines) {
+    my ($width, $height) = $image->get_text_size($line);
+    $max = $width if $width > $max;
+  }
+  return $max;
+}
+
+sub total_height {
+  my $self = shift;
+  my ($image, @lines) = @_;
+
+  my $total = 0;
+  foreach my $line (@lines) {
+    my ($width, $height) = $image->get_text_size($line);
+    $total += $height;
+  }
+  return $total;
+}
+
+sub write_centered_block {
+  my $self = shift;
+  my ($image, @lines) = @_;
+  $self->write_block($image,
+		     ( $image->get_width() - $self->max_width($image, @lines) ) / 2,
+		     ( $image->get_height() - $self->total_height($image, @lines) ) / 2,
+		     @lines
+		    );
+}
+
+sub write_block {
+  my $self = shift;
+  my ($image, $x, $y, @lines) = @_;
+
+  my $y_curr = $y;
+  foreach my $line (@lines) {
+    chomp($line);
+    $image->draw_text($x, $y_curr, $line);
+    my ($width, $height)  = $image->get_text_size($line);
+    $y_curr += $height;
+  }
+  
+  return $y_curr;
 }
 
 sub write_centered {
@@ -132,6 +215,5 @@ sub draw_centered {
 
   return $y;
 }
-
 
 1;
