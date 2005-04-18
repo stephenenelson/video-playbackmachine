@@ -33,6 +33,8 @@ sub new {
   my $type = shift;
   my %in = @_;
 
+  defined $in{'producer'} or croak "Must supply a producer; stopped";
+
   my $self = {
 	      name => $in{name},
 	      sequence_order => $in{sequence_order},
