@@ -107,38 +107,35 @@ sub create_image {
   return $image;
 }
 
-sub max_width {
+sub measure_block {
   my $self = shift;
   my ($image, @lines) = @_;
 
   my $max = 0;
+  my $total = 0;
   foreach my $line (@lines) {
     my ($width, $height) = $image->get_text_size($line);
     $max = $width if $width > $max;
+    $total += $height;
   }
+  return ($max,$total);
+}
+
+sub max_width {
+  my $self = shift;
+  my ($image, @lines) = @_;
+
+  my ($max, undef) = $self->measure_block($image, @lines);
   return $max;
+
 }
 
 sub total_height {
   my $self = shift;
   my ($image, @lines) = @_;
 
-  my $total = 0;
-  foreach my $line (@lines) {
-    my ($width, $height) = $image->get_text_size($line);
-    $total += $height;
-  }
+  my (undef, $total) = $self->measure_block($image, @lines);
   return $total;
-}
-
-sub write_centered_block {
-  my $self = shift;
-  my ($image, @lines) = @_;
-  $self->write_block($image,
-		     ( $image->get_width() - $self->max_width($image, @lines) ) / 2,
-		     ( $image->get_height() - $self->total_height($image, @lines) ) / 2,
-		     @lines
-		    );
 }
 
 sub write_block {
@@ -146,14 +143,19 @@ sub write_block {
   my ($image, $x, $y, @lines) = @_;
 
   my $y_curr = $y;
+  my $max_width = 0;
   foreach my $line (@lines) {
     chomp($line);
-    $image->draw_text($x, $y_curr, $line);
+    my $y_next = $y_curr;
     my ($width, $height)  = $image->get_text_size($line);
-    $y_curr += $height;
+    $y_next += $height;
+    $width > $max_width and $max_width = $width;
+    last if ($y_next > $image->get_height());
+    $image->draw_text($x, $y_curr, $line);
+    $y_curr = $y_next;
   }
   
-  return $y_curr;
+  return ($x + $max_width, $y_curr);
 }
 
 sub write_centered {
@@ -167,7 +169,10 @@ sub write_centered {
 }
 
 sub wrap_words {
-  my ($image, $in_text) = @_;
+  my ($image, $in_text, $wrap_width) = @_;
+
+  defined $wrap_width 
+    or $wrap_width = $image->get_width();
 
   my @lines = ();
   my $total_height = 0;
@@ -183,7 +188,7 @@ sub wrap_words {
 
     foreach my $atom (@atoms) {
       my ($width, $height) = $image->get_text_size($atom);
-      if ( ( $line_width + $width ) > $image->get_width() ) {
+      if ( ( $line_width + $width ) > $wrap_width ) {
 	push(@lines, $curr_line);
 	$curr_line = $atom;
 	$line_width = $width;
