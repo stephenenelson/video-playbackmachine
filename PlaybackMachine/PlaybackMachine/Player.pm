@@ -339,7 +339,7 @@ sub get_events {
 sub set_handler {
   my $self = shift;
   my ($event, $callback) = @_;
-  $self->{'handlers'}{$event} = $callback;
+  $self->{'handlers'}{$event} = sub { $callback->($_[0], Video::PlaybackMachine::Player::PLAYBACK_OK) };
 }
 
 
