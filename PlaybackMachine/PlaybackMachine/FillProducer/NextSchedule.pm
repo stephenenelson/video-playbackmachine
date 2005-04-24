@@ -64,4 +64,22 @@ sub add_text {
 
 }
 
+##
+## is_available
+##
+## We are available if there is more than one something "next".  If
+## there's only one thing left on the schedule, we assume that "up
+## next" will be enough.
+##
+sub is_available {
+  my $self = shift;
+
+  my $entries = $poe_kernel->call('Scheduler', 'query_next_scheduled', $Max_Entries)
+    or return;
+
+  return @$entries > 1;
+
+}
+
+
 1;
