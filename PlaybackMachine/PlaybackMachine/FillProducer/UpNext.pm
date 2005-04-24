@@ -53,4 +53,17 @@ sub add_text {
 
 }
 
+##
+## is_available
+##
+## We are available if there is something "next"
+##
+sub is_available {
+  my $self = shift;
+
+  $poe_kernel->call('Scheduler', 'query_next_scheduled')
+    or return;
+  1;
+}
+
 1;
