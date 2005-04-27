@@ -15,6 +15,7 @@ our @EXPORT_OK = qw(PLAYER_STATUS_STOP PLAYER_STATUS_PLAY PLAYER_STATUS_STILL
 use POE;
 use X11::FullScreen;
 use Video::Xine;
+use Video::PlaybackMachine::EventWheel::FullScreen;
 use Log::Log4perl;
 use Carp;
 
@@ -61,7 +62,6 @@ sub new {
 
 ##
 ## On session start, initializes Xine and prepares it to start playing.
-## The Xine screen will not appear until the first 'play' request.
 ##
 sub _start {
   my $kernel = $_[KERNEL];
@@ -81,10 +81,19 @@ sub _start {
 						      $display->getPixelAspect()
 						     );
   my $driver = Video::Xine::Driver::Video->new($xine,"auto",1,$x11_visual);
-  $_[HEAP]->{'stream'} = $xine->stream_new(undef, $driver)
+  my $s = $xine->stream_new(undef, $driver)
     or croak "Unable to open video stream";
+  $_[HEAP]->{'stream'} = $s;
   $_[HEAP]->{'stream_queue'} =
-    Video::PlaybackMachine::Player::EventWheel->new($_[HEAP]{'stream'});
+    Video::PlaybackMachine::Player::EventWheel->new($s);
+  my $fq =
+    Video::PlaybackMachine::EventWheel::FullScreen->new($display, $_[HEAP]->{'window'});
+  $fq->set_expose_handler(
+			  sub { $s->get_video_port()->send_gui_data(XINE_GUI_SEND_EXPOSE_EVENT, $_[1]); } );
+  $fq->spawn();
+
+  $_[HEAP]->{'fullscreen_queue'} = $fq
+
 }
 
 ##
@@ -128,10 +137,16 @@ sub play {
       return;
     };
 
+  # Tell the system to refresh the window
+  # Drawable changed
+  $s->get_video_port()->send_gui_data(XINE_GUI_SEND_DRAWABLE_CHANGED, $heap->{'window'});
+  $s->get_video_port()->send_gui_data(XINE_GUI_SEND_VIDEOWIN_VISIBLE, 1);
+
   # Spawn a watcher to call the postback after the fact
   $heap->{'stream_queue'}->set_stop_handler($postback);
   $heap->{'stream_queue'}->spawn();
 
+			     
   $heap->{'playback_type'} = PLAYBACK_TYPE_MOVIE;
 
 }
@@ -267,6 +282,8 @@ sub get_status {
 
 
 package Video::PlaybackMachine::Player::EventWheel;
+
+# TODO: Make a subclass of EventWheel
 
 ###
 ### When spawned, these will pass along events from the given
