@@ -365,8 +365,6 @@ sub finished {
       # If there's enough time to start filling
       if ( $self->get_time_to_next($now) > $self->{minimum_fill} ) {
 
-	$self->{'logger'}->debug("Not filling: " . $self->get_time_to_next($now) . " too short for fill\n");
-
 	# Fill until next scheduled entry
 	$kernel->yield('wait_for_scheduled');
 
@@ -374,6 +372,8 @@ sub finished {
 
       # Otherwise, go into idle mode till next
       else {
+
+	$self->{'logger'}->debug("Not filling: " . $self->get_time_to_next($now) . " too short for fill (minimum $self->{'minimum_fill'})\n");
 
 	$self->{mode} = IDLE_MODE;
 
