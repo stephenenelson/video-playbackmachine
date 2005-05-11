@@ -1,9 +1,3 @@
-
-CREATE TABLE content_types (
-	type		text primary key
-);
-
-
 CREATE TABLE av_files (
 	title		text primary key
 );
@@ -39,10 +33,8 @@ CREATE TABLE schedules (
 	name		text primary key
 );
 
-CREATE SEQUENCE schedule_id_seq;
-
 CREATE TABLE content_schedule (
-	id			int primary key DEFAULT nextval('schedule_id_seq'),
+	id		SERIAL PRIMARY KEY,
 	title 		text not null references av_files
 				ON DELETE CASCADE
 				ON UPDATE CASCADE,
@@ -50,7 +42,8 @@ CREATE TABLE content_schedule (
 				ON DELETE CASCADE
 				ON UPDATE CASCADE,
 	listed		boolean DEFAULT true,
-	start_time	timestamp WITH TIME ZONE NOT NULL
+	start_time	timestamp WITH TIME ZONE NOT NULL,
+	UNIQUE(start_time,schedule)
 );
 
 CREATE FUNCTION avfile_duration(text) RETURNS interval AS '
@@ -100,9 +93,13 @@ CREATE OR REPLACE VIEW fills AS
 	SELECT title, avfile_duration(title) AS duration
 	FROM fill_shorts;
 
+
+--
+-- Listing of movie contents
 CREATE OR REPLACE VIEW movies AS
 	SELECT title, avfile_duration(title) AS duration
 	FROM contents;
+
 
 CREATE OR REPLACE VIEW schedule_times AS
 	SELECT 
@@ -111,9 +108,10 @@ CREATE OR REPLACE VIEW schedule_times AS
 		schedule,
 		start_time,
 		stop_time(content_schedule.title,start_time) AS stop_time,
-		description
+		description,
+		listed
 	FROM content_schedule,contents
-	WHERE listed = TRUE AND contents.title = content_schedule.title;
+	WHERE contents.title = content_schedule.title;
 	
 
 CREATE OR REPLACE VIEW schedule_times_raw AS
@@ -123,7 +121,8 @@ CREATE OR REPLACE VIEW schedule_times_raw AS
 		schedule,
 		description,
                	date_part('epoch', start_time) AS start_time,
-               	date_part('epoch', stop_time) AS stop_time
+               	date_part('epoch', stop_time) AS stop_time,
+		listed
 	FROM schedule_times;
 
 
@@ -132,9 +131,9 @@ CREATE OR REPLACE VIEW schedule_times_raw AS
 ---
 GRANT SELECT ON TABLE schedules TO apache;
 GRANT SELECT ON TABLE av_file_component TO apache;
-GRANT SELECT ON TABLE av_files TO apache;
 GRANT SELECT ON TABLE schedule_times TO apache;
 GRANT SELECT ON TABLE movies TO apache;
 GRANT SELECT ON TABLE fills TO apache;
 GRANT ALL ON TABLE schedule_id_seq TO apache;
 GRANT ALL ON TABLE content_schedule TO apache;
+GRANT ALL ON TABLE av_files TO apache;
