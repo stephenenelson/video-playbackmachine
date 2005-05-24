@@ -47,8 +47,8 @@ use constant FILL_MODE => 2;
 use constant PLAY_MODE => 3;
 
 ## Auto-restart interval-- Minimum number of seconds between restarts
-use constant RESTART_INTERVAL => 4 * 60 * 60;
-#use constant RESTART_INTERVAL => 7;
+#use constant RESTART_INTERVAL => 7 * 60 * 60;
+use constant RESTART_INTERVAL => 7;
 
 ############################## Class Methods ##############################
 
@@ -313,13 +313,8 @@ sub finished {
 
   # If we've been running longer than the restart interval, restart the system
   if ( ($now - $^T) > RESTART_INTERVAL ) {
-    my $table = $self->{'schedule_table'};
-    my $new_offset = $table->db_schedule_time($self->{'offset'});
-    my @restart_args = ($^X, $0, 
-			"--start=$new_offset",
-			$table->get_schedule_name() );
-    $self->{'logger'}->info("Restarted $0 with command line ", join(' ', map {"'$_'"} @restart_args));
-    exec(@restart_args);
+    $self->{'logger'}->info("Shutting down for restart");
+    exit(0);
   }
 
   # We're in idle mode now
