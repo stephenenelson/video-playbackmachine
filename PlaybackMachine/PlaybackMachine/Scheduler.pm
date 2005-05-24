@@ -47,7 +47,7 @@ use constant FILL_MODE => 2;
 use constant PLAY_MODE => 3;
 
 ## Auto-restart interval-- Minimum number of seconds between restarts
-use constant RESTART_INTERVAL => 7 * 60 * 60;
+use constant RESTART_INTERVAL => 4 * 60 * 60;
 #use constant RESTART_INTERVAL => 7;
 
 ############################## Class Methods ##############################
