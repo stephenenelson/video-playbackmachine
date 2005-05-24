@@ -121,7 +121,7 @@ sub play {
     $heap->{'stream'}->close();
   }
 
-  $log->info("Playing ($offset): $files[0]");
+  $log->info("Playing $files[0]");
 
   my $s = $_[HEAP]->{'stream'};
   $s->open($files[0])
@@ -148,6 +148,21 @@ sub play {
 
 			     
   $heap->{'playback_type'} = PLAYBACK_TYPE_MOVIE;
+
+}
+
+##
+## stop()
+##
+## Stops the currently-playing movie.
+##
+sub stop {
+  my $heap = $_[HEAP];
+
+  # Stop if we're playing
+  if ( $heap->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
+    $heap->{'stream'}->stop();
+  }
 
 }
 
@@ -245,7 +260,6 @@ sub play_music {
 ##
 sub spawn {
   my $self = shift;
-  my ($finish_callback) = @_;
 
   POE::Session->create(
 		       object_states => 
@@ -255,6 +269,7 @@ sub spawn {
                                      play
                                      play_still
 				     play_music
+                                     stop
                                   )
 				 ] ,
 		       ],
