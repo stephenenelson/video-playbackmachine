@@ -272,7 +272,14 @@ sub spawn {
 sub get_status {
   my $self = shift;
 
-  my $heap = $poe_kernel->get_active_session()->get_heap();
+
+  my $session = $poe_kernel->get_active_session();
+  my $heap = $session->get_heap();
+
+  if (! defined $heap->{'stream'} ) {
+    $self->{'logger'}->fatal("Undefined stream! Called on session $session");
+    confess("Undefined stream!");
+  }
 
   $heap->{'stream'}->get_status() == XINE_STATUS_PLAY
     and return PLAYER_STATUS_PLAY;
