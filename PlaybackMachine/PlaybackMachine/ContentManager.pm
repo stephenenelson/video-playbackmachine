@@ -4,9 +4,10 @@ use strict;
 use warnings;
 use diagnostics;
 
-use Xine_simple 'xine_simple_get_length';
+use Video::Xine;
 use File::Basename;
 use POSIX 'ceil';
+use Carp;
 
 use DBI;
 
@@ -75,7 +76,14 @@ sub get_dbh {
 sub get_length {
   my ($filename) = @_;
 
-  my $length_millis = xine_simple_get_length($filename);
+  my $xine = Video::Xine->new(config_file => '/dev/null');
+  my $null_ao_driver = Video::Xine::Driver::Audio->new($xine, 'none')
+      or die "Couldn't open audio driver\n";
+  my $stream = $xine->stream_new($null_ao_driver);
+  $stream->open($filename)
+    or croak "Couldn't open '$filename'";
+  my (undef, undef, $length_millis) = $stream->get_pos_length();
+
   return ceil($length_millis / 1000);
 }
 
