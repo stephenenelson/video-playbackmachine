@@ -12,8 +12,9 @@ package Video::PlaybackMachine::FillProducer::FillShort;
 #### which allows it to query the database whenever someone asks it.
 ####
 
-# TODO: extract DB code from ScheduleTable::DB and put into general
-# "database" object
+# TODO: extract DB code from ScheduleTable::DB
+#
+# TODO: Split fill producers from fill displayers (?)
 
 use strict;
 use warnings;
@@ -92,7 +93,6 @@ sub start {
 ## Returns the minimum amount of time this filler can run, i.e. the
 ## shortest short. Caches its values to minimize database calls.
 ##
-# TODO: Wrap in an "update" command.
 sub min_time {
   my $self = shift;
 
