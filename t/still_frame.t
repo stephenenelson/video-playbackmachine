@@ -25,7 +25,7 @@ MAIN: {
 								    );
   ok(! $frame->has_audio(), "Still frame doesn't have audio");
   isa_ok( $frame->get_time_layout(), 'Video::PlaybackMachine::TimeLayout::FixedTimeLayout');
-  is($frame->get_next(1), 2);
+  #is($frame->get_next(1), 2);
 
   my $still = '';
   my $time = 0;

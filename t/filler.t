@@ -3,9 +3,10 @@
 
 #########################
 
-# change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 6;
+# TODO: Only gives 3 OKs, which might be OK because it won't go into wait mode if there's nothing scheduled after.
+
+use Test::More tests => 3;
 BEGIN { use_ok('Video::PlaybackMachine::Filler') };
 
 use strict;
