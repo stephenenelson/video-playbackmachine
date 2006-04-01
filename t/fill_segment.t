@@ -5,7 +5,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 8;
+use Test::More tests => 7;
 BEGIN { use_ok('Video::PlaybackMachine::FillSegment') };
 
 #########################
@@ -30,7 +30,6 @@ MAIN: {
   is($segment->get_sequence(), 2);
   is($segment->get_priority(), 5);
   is($segment->get_producer(), $producer);
-  is($segment->get_next(), 3);
   ok($segment->is_available(15));
   ok(! $segment->is_available(5));
 }

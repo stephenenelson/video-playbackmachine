@@ -5,7 +5,7 @@
 
 use strict;
 
-use Test::More tests => 2;
+use Test::More skip_all => 'Need to implement non-Xine trivial player';
 BEGIN { use_ok('Video::PlaybackMachine::Player') };
 
 

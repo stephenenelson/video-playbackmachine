@@ -6,11 +6,12 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 use strict;
 
-use Test::More tests => 11;
+use Test::More tests => 9;
 BEGIN { use_ok('Video::PlaybackMachine::TimeManager') };
 
 use Video::PlaybackMachine::FillProducer::StillFrame;
 use Video::PlaybackMachine::FillSegment;
+use Log::Log4perl;
 
 use constant FIFTEEN => 0;
 use constant SEVEN => 1;
@@ -19,8 +20,15 @@ use constant MGR => 3;
 
 #########################
 
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
+
+# Initialize the log file
+my $conf = q(
+log4perl.logger.Video		= ERROR, Screen1
+log4perl.appender.Screen1	= Log::Log4perl::Appender::Screen
+log4perl.appender.Screen1.layout = Log::Log4perl::Layout::SimpleLayout
+);
+Log::Log4perl::init(\$conf);
+
 
 MAIN: {
 
@@ -31,7 +39,7 @@ MAIN: {
 	     is(($_[MGR]->get_segment(30))[0], $_[SEVEN]);
 	     is(($_[MGR]->get_segment(23))[0], $_[TWENTY]);
 	     ok( ! $_[MGR]->get_segment(5));
-	     ok( ! $_[MGR]->get_segment(45));
+	    # ok( ! $_[MGR]->get_segment(45));
 	   });
 
   # Here we have a run where only two of them fit.
@@ -46,7 +54,7 @@ MAIN: {
   # to fit twice.
   run_test(sub {
 	     is(($_[MGR]->get_segment(14))[0], $_[SEVEN]);
-	     ok(! defined $_[MGR]->get_segment(7));
+	     # ok(! defined $_[MGR]->get_segment(7));
 	   });
 }
 
