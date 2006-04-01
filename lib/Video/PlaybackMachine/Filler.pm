@@ -135,7 +135,7 @@ sub next_fill {
       return;
     };
 
-  print $_[OBJECT]{'logger'}->debug("Starting fill segment name: ", $segment->get_name());
+  $_[OBJECT]{'logger'}->debug("Starting fill segment name: ", $segment->get_name());
 
   $segment->get_producer()->start($time);
 
