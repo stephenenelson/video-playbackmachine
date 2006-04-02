@@ -43,8 +43,6 @@ lib/Video/PlaybackMachine/FillProducer/UpNext.pm
 lib/Video/PlaybackMachine/FillSegment.pm
 lib/Video/PlaybackMachine/Listable.pm
 lib/Video/PlaybackMachine/Movie.pm
-lib/Video/PlaybackMachine/Notes.txt
-lib/Video/PlaybackMachine/notes.txt
 lib/Video/PlaybackMachine/Player.pm
 lib/Video/PlaybackMachine/PlayerBackEnd.pm
 lib/Video/PlaybackMachine/PlayerBackEnd/XineBackEnd.pm
@@ -60,7 +58,6 @@ lib/Video/PlaybackMachine/TimeLayout/RangeLayout.pm
 lib/Video/PlaybackMachine/TimeManager.pm
 README
 sql/playback_machine_dd.sql
-sql/random_content.sql
 t/fill_segment.t
 t/fixed_time_layout.t
 t/lib/Video/PlaybackMachine/MockScheduleTable.pm

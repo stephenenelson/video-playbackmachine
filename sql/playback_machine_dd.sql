@@ -134,3 +134,4 @@ GRANT SELECT ON TABLE movies TO apache;
 GRANT SELECT ON TABLE fills TO apache;
 GRANT ALL ON TABLE content_schedule TO apache;
 GRANT ALL ON TABLE av_files TO apache;
+GRANT ALL ON content_schedule_id_seq TO apache;
