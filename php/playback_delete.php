@@ -20,7 +20,7 @@ if (!$database) {
 }
 
 for ($i = 0; $i < count($p_delete_ids); $i++) {
-  if (! pg_query($database, "delete from content_schedule where id=$p_delete_ids[$i] and schedule=$_SESSION['schedule'];")) {
+  if (! pg_query($database, "delete from content_schedule where id=$p_delete_ids[$i] and schedule=". $_SESSION['schedule'] . ";")) {
     echo "Error: Couldn't delete id '$p_delete_id'<p>";
     exit;
   }
