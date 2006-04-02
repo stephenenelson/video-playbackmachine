@@ -2,8 +2,6 @@ CREATE TABLE av_files (
 	title		text primary key
 );
 
-
-
 CREATE TABLE av_file_component (
 	file		text NOT NULL,
 	title		text REFERENCES av_files 
@@ -134,6 +132,5 @@ GRANT SELECT ON TABLE av_file_component TO apache;
 GRANT SELECT ON TABLE schedule_times TO apache;
 GRANT SELECT ON TABLE movies TO apache;
 GRANT SELECT ON TABLE fills TO apache;
-GRANT ALL ON TABLE schedule_id_seq TO apache;
 GRANT ALL ON TABLE content_schedule TO apache;
 GRANT ALL ON TABLE av_files TO apache;
