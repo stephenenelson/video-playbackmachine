@@ -208,8 +208,8 @@ sub get_offset {
   my $self = shift;
   my ($date) = @_;
 
-  my $sth = $self->getDbh()->prepare('select EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - TIMESTAMPTZ ?)');
-  $sth->execute($date)
+  my $sth = $self->getDbh()->prepare("select EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - TIMESTAMPTZ '$date')");
+  $sth->execute()
     or return;
   my ($offset) = $sth->fetchrow_array()
     or return;
