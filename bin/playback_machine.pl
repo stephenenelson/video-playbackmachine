@@ -8,6 +8,9 @@ use Getopt::Long;
 
 use Log::Log4perl;
 
+use FindBin '$Bin';
+use lib "$Bin/../lib";
+
 
 use Video::PlaybackMachine::Config;
 use Video::PlaybackMachine::ScheduleTable::DB;
