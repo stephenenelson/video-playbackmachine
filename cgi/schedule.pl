@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use CGI;
-use Time::Duration;
+use Date::Manip;
 
 use Video::PlaybackMachine::ScheduleTable::DB;
 
@@ -20,7 +20,9 @@ MAIN: {
 	
 	my $table = Video::PlaybackMachine::ScheduleTable::DB->new( schedule => "BayCon 2006" );
 	
-	my @entries = $table->get_entries_after("2005-05-26 14:00:00");
+	my $start_time = 
+	
+	my @entries = $table->get_entries_after(0);
 	
 	foreach my $entry ( @entries ) {
 			print $entry->get_title();
