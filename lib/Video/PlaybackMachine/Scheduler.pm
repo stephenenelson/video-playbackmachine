@@ -312,10 +312,10 @@ sub finished {
   my $now = time();
 
   # If we've been running longer than the restart interval, restart the system
-  if ( ($now - $^T) > RESTART_INTERVAL ) {
-    $self->{'logger'}->info("Shutting down for restart");
-    exit(0);
-  }
+  #if ( ($now - $^T) > RESTART_INTERVAL ) {
+  #  $self->{'logger'}->info("Shutting down for restart");
+  #  exit(0);
+  #}
 
   # We're in idle mode now
   $self->{mode} = IDLE_MODE;
