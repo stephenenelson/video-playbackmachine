@@ -67,6 +67,13 @@ EOF
 	  	print "     <td>", starttime($curr_time), "</td>\n  </tr>";
 	    $curr_time += $Step_Interval;
 	}
+print <<EOF;	
+			
+</table>
+</body>
+</html>
+ 
+EOF
 
 }
 
