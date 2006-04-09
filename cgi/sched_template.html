@@ -1,0 +1,18 @@
+[% USE date %]
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en" />
+<title>Schedule</title>
+</head>
+<body bgcolor="#FFFFFF" text="#000000" link="#FF9966" vlink="#FF9966" alink="#FFCC99">
+<h1>Schedule</h1>
+<table border="1">
+	<tr>
+		<th>Time</th>
+[% FOREACH day = DAYS %]
+		<th>[% date.format('%A %b %y', day) %]</th>
+[% END %]
+	</tr>
+[% %]
+
+</table>

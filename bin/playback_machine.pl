@@ -23,6 +23,8 @@ use Video::PlaybackMachine::FillProducer::StillFrame;
 use Video::PlaybackMachine::FillProducer::UpNext;
 use Video::PlaybackMachine::FillProducer::NextSchedule;
 
+our $Config_Default = '/home/steven/dev/Video-PlaybackMachine/conf/playback_log.conf';
+
 our $config = Video::PlaybackMachine::Config->config();
 
 our $Skip_Tolerance = $config->skip_tolerance();
@@ -44,7 +46,7 @@ MAIN: {
 			$date = $config->start();
 
 			Log::Log4perl::init(
-				'/home/steven/dev/Video-PlaybackMachine/conf/playback_log.conf'
+				$Config_Default
 			);
 
 			my $schedule_name = $config->schedule();
