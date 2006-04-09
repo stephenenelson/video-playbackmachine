@@ -1,0 +1,28 @@
+For each day
+	Print out the date for the header
+End for each day
+
+For each day
+	Get list of events per day
+End for each day
+
+Start at top show per day
+
+For each timeblock
+	For each day
+		If the current show is running (marked as started and before finish in this cell)
+			Skip the cell
+		End if
+		Else if the current show ends in this cell
+			Unmark "started"
+			Move to next show
+		End else if
+		Else if the current show starts in this cell
+			Print the show cell
+			Mark current show has started
+		End else if
+		Else nothing's playing in this cell
+			Print an "add" entry
+		End else
+	End for each day
+End for each timeblock
