@@ -14,21 +14,20 @@ use CGI;
 
 our $Step_Interval = 5 * 60;
 
+our $Start_Time = UnixDate(ParseDate("20060526140000"), '%s');
+
+our $End_Time = UnixDate(ParseDate("200605292359"), '%s');
+
 ################################# Main Program ################################
 
 MAIN: {
 
 	
 	my $table = Video::PlaybackMachine::ScheduleTable::DB->new( schedule_name => "BayCon 2006" );
-	
-	my $start_time = UnixDate(ParseDate("20060526140000"), '%s')
-	  or die;
 
-	my $end_time = UnixDate(ParseDate("200605292359"), '%s');
+	my @entries = $table->get_entries_after($Start_Time - 1, 100000);
 
-	my @entries = $table->get_entries_after($start_time - 1, 100000);
-
-	my $curr_time = $start_time;
+	my $curr_time = $Start_Time;
 
 	my $entry = shift @entries or exit;
 
