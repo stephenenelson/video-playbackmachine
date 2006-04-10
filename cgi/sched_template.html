@@ -2,10 +2,10 @@
 <html>
 <head>
 <meta http-equiv="Content-Language" content="en" />
-<title>Schedule</title>
+<title>Schedule [% SCHEDULE_NAME %]</title>
 </head>
 <body bgcolor="#FFFFFF" text="#000000" link="#FF9966" vlink="#FF9966" alink="#FFCC99">
-<h1>Schedule</h1>
+<h1>Schedule [% SCHEDULE_NAME %]</h1>
 <table border="1">
 	<tr>
 		<th>Time</th>
@@ -13,6 +13,17 @@
 		<th>[% date.format('%A %b %y', day) %]</th>
 [% END %]
 	</tr>
-[% %]
-
+[% FOREACH slot = SLOTS %]
+	<tr>
+		<td>[% date.format('%H:%M', slot.time) %]</td>
+[% FOREACH cell = slot.cells %]
+[% IF cell.title %]
+		<td rowspan="[% cell.rows %]" bgcolor="lightblue">[% cell.title %]</td>
+[% ELSE %]
+		<td><a href="add_schedule.pl?start_time=[% cell.start %]">Add Title</a></td>
+[% END %]
+	</tr>
+[% END %]
 </table>
+</body>
+</html>	`
