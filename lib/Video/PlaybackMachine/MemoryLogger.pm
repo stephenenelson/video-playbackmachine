@@ -79,3 +79,5 @@ sub update
 	
 	$kernel->delay('update', $CHECK_INTERVAL);
 }
+
+1;
