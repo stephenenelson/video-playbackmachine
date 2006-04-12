@@ -75,7 +75,7 @@ sub update
 		}
 	}
 	
-	$self->{'logger'}->debug("Memory for ". $cp->pid() .": " . $cp->rss() . " rss " . $cp->pctmem() . "\%");
+	$self->{'logger'}->debug("Memory for $$: " . $cp->rss() . " rss " . $cp->pctmem() . "\%");
 	
 	$kernel->delay('update', $CHECK_INTERVAL);
 }
