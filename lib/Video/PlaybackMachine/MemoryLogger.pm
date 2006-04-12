@@ -19,7 +19,7 @@ use Proc::ProcessTable;
 ############################# Class Constants #############################
 
 # Prime number to avoid regularities on other checks
-our $CHECK_INTERVAL = 11;
+our $CHECK_INTERVAL = 30;
 
 ############################## Class Methods ##############################
 
@@ -75,7 +75,7 @@ sub update
 		}
 	}
 	
-	$self->{'logger'}->debug("Memory for $$: " . $cp->rss() . " rss " . $cp->pctmem() . "\%");
+	$self->{'logger'}->debug("Memory for $$: " . $cp->rss() . " rss " . $cp->size() . " size");
 	
 	$kernel->delay('update', $CHECK_INTERVAL);
 }
