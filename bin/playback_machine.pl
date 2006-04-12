@@ -63,6 +63,9 @@ MAIN: {
 					$offset += $table->get_offset($date);
 				}
 			}
+			
+			my $memory_logger = Video::PlaybackMachine::MemoryLogger->new();
+			$memory_logger->spawn();
 
 			my $watcher = Video::PlaybackMachine::DatabaseWatcher->new(
 				dbh     => $table->getDbh(),
@@ -70,6 +73,7 @@ MAIN: {
 				session => 'Scheduler',
 				event   => 'update',
 			);
+			
 			my $watcher_session = $watcher->spawn();
 
 			my $scheduler = Video::PlaybackMachine::Scheduler->new(
