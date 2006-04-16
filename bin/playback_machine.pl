@@ -22,6 +22,7 @@ use Video::PlaybackMachine::FillProducer::FillShort;
 use Video::PlaybackMachine::FillProducer::StillFrame;
 use Video::PlaybackMachine::FillProducer::UpNext;
 use Video::PlaybackMachine::FillProducer::NextSchedule;
+use Video::PlaybackMachine::MemoryLogger;
 
 our $Config_Default = '/home/steven/dev/Video-PlaybackMachine/conf/playback_log.conf';
 
