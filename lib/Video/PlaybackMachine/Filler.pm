@@ -147,7 +147,6 @@ sub next_fill {
 ## Is called when one of the producers wants the Filler to display
 ## moving pictures.
 ##
-# TODO Is this routine used?
 sub short_ready {
   $_[KERNEL]->post('Player', 
 		   'play',
