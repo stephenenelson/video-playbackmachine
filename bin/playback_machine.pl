@@ -31,7 +31,7 @@ our $config = Video::PlaybackMachine::Config->config();
 our $Skip_Tolerance = $config->skip_tolerance();
 
 MAIN: {
-	my ($date, $start_time);
+	my ($date);
 	
 	my $start_time = time();
 
