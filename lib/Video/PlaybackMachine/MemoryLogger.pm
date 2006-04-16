@@ -18,7 +18,6 @@ use Proc::ProcessTable;
 
 ############################# Class Constants #############################
 
-# Prime number to avoid regularities on other checks
 our $CHECK_INTERVAL = 30;
 
 ############################## Class Methods ##############################
