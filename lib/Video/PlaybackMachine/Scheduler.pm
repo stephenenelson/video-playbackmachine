@@ -158,6 +158,7 @@ sub should_be_playing {
     if ($self->get_seek($current) < $self->{skip_tolerance} ) {
       return $current;
     }
+    # TODO make sure that there's no edge condition
     else {
       return;
     }
