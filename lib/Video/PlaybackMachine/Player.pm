@@ -179,7 +179,7 @@ sub stop {
 sub play_still {
   my ($self, $kernel, $heap, $still, $callback, $time) = @_[OBJECT, KERNEL, HEAP, ARG0, ARG1];
   my $log = $self->{'logger'};
-  $log->debug("Showing '$_[ARG0]'");
+  $log->debug("Showing still '$_[ARG0]'");
   eval {
     $heap->{'display'}->displayStill($heap->{'window'}, $still);
   };
