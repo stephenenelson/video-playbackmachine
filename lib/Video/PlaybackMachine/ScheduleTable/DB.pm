@@ -32,9 +32,8 @@ our $Database_Name = Video::PlaybackMachine::Config->config->database();
 sub new
 {
   my $type = shift;
-  my (%in) = @_;
   my $self = {
-	      schedule_name => $in{'schedule_name'},
+	      schedule_name => Video::PlaybackMachine::Config->config->schedule(),
 	      dbh           => undef,
 	      logger        => Log::Log4perl->get_logger('Video.PlaybackMachine.DB'),
 	     };
@@ -44,6 +43,42 @@ sub new
 ############################## Object Methods ######################################
 
 sub getDbh { return Video::PlaybackMachine::DB->db(); }
+
+##
+## get_entries_between()
+##
+## Arguments:
+##    BEGIN_TIME: scalar -- UNIX raw time
+##    END_TIME: scalar -- UNIX raw time
+##
+## Returns all entries which start or end between BEGIN_TIME and END_TIME.
+##
+sub get_entries_between
+{
+	my $self = shift;
+	my ($begin_time, $end_time) = @_;	
+	
+	my $sth = $self->getDbh->prepare(
+q/
+	SELECT title, start_time
+	FROM schedule_times_raw
+	WHERE (start_time > ? OR stop_time > ?) AND start_time < ? AND schedule = ?
+	ORDER BY start_time
+/
+	);
+	
+	$sth->execute($begin_time, $begin_time, $end_time, $self->{'schedule_name'})
+		or $self->{'logger'}->logdie($DBI::errstr);
+
+	my @entries = ();
+	
+	while (my ($title, $start_time, $description) = $sth->fetchrow_array() ) {
+		push(@entries, $self->_entry_for($title, $start_time, $description));	
+	}
+	
+	return @entries;
+	
+}
 
 ##
 ## get_entries_after()
