@@ -21,7 +21,8 @@ our $Scan_Seconds = 3;
 MAIN: {
 
   # Initialize logger
-  Log::Log4perl::init('/etc/playback_machine/playback_log.conf');  
+  # TODO Move log4perl init to config file
+  Log::Log4perl::init('/home/steven/dev/Video-PlaybackMachine/conf/playback_log.conf');  
 
   # Get movies from database
   my @movies = get_movies();
