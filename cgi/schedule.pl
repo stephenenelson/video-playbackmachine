@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Template;
+use Date::Manip;
 
 use POSIX qw/ceil/;
 use CGI;
@@ -23,22 +24,23 @@ our @Days = ( UnixDate(ParseDate("20060526"), '%s'),
 MAIN: {
 
 	my $tt = Template->new({INCLUDE_PATH => './'});
+	my $start_time = UnixDate(ParseDate("20060526000000"), '%s');
 	$tt->process('sched_template.html', 
 		{
 			SLOTS => [ 
 				{
-					time => UnixDate(ParseDate("20060526000000"), '%s'), 
-					cell => [ 
+					time => $start_time + ($Step_Interval * 0), 
+					cells => [ 
 				    		{}, 
 					    	{title => "Mystery Fandom Theater: Little Red Riding Hood", rows => 19 },
 						{title => "Night of the Living Dead",  rows => 19 } 
 					]
-				}
+				},
+
 			],
 			DAYS => \@Days,
 		}
-	);
-	
-
+	)
+	    or die $tt->error();
 	
 }

@@ -1,4 +1,4 @@
-[% USE date %]
+[% USE date -%]
 <html>
 <head>
 <meta http-equiv="Content-Language" content="en" />
@@ -10,17 +10,18 @@
 	<tr>
 		<th>Time</th>
 [% FOREACH day = DAYS %]
-		<th>[% date.format('%A %b %y', day) %]</th>
+		<th>[%  date.format(day, '%A %b %d')  %]</th>
 [% END %]
 	</tr>
 [% FOREACH slot = SLOTS %]
 	<tr>
-		<td>[% date.format('%H:%M', slot.time) %]</td>
+		<td>[% date.format(slot.time, '%H:%M') %]</td>
 [% FOREACH cell = slot.cells %]
 [% IF cell.title %]
 		<td rowspan="[% cell.rows %]" bgcolor="lightblue">[% cell.title %]</td>
 [% ELSE %]
 		<td><a href="add_schedule.pl?start_time=[% cell.start %]">Add Title</a></td>
+[% END %]
 [% END %]
 	</tr>
 [% END %]
