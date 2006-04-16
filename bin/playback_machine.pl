@@ -22,7 +22,6 @@ use Video::PlaybackMachine::FillProducer::FillShort;
 use Video::PlaybackMachine::FillProducer::StillFrame;
 use Video::PlaybackMachine::FillProducer::UpNext;
 use Video::PlaybackMachine::FillProducer::NextSchedule;
-use Video::PlaybackMachine::MemoryLogger;
 
 our $Config_Default = '/home/steven/dev/Video-PlaybackMachine/conf/playback_log.conf';
 
@@ -31,10 +30,12 @@ our $config = Video::PlaybackMachine::Config->config();
 our $Skip_Tolerance = $config->skip_tolerance();
 
 MAIN: {
-	my ($date);
+	my ($date, $start_time);
+	
+	my $start_time = time();
 
 	while (1) {
-
+	
 		# Spawn off a child to do actual running
 		my $pid;
 		if ( my $pid = fork ) {
@@ -43,7 +44,7 @@ MAIN: {
 		}
 		else {
 
-			my $offset = $config->offset();
+			my $offset = $config->offset() + ( time() - $start_time );
 			$date = $config->start();
 
 			Log::Log4perl::init(
