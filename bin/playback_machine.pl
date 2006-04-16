@@ -45,7 +45,7 @@ MAIN: {
 		}
 		else {
 
-			my $offset = $config->offset() + ( time() - $start_time );
+			my $offset = $config->offset() - ( time() - $start_time );
 			$date = $config->start();
 
 			Log::Log4perl::init(
