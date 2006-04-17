@@ -181,7 +181,6 @@ sub play_still {
   my $log = $self->{'logger'};
   if ($heap->{'stream'}->get_status() == XINE_STATUS_PLAY) {
   		$log->error("Attempted to show still '$still' while playing a movie");
-  		$callback->(PLAYBACK_ERROR);
   		return;
   }
   $log->debug("Showing still '$_[ARG0]'");
