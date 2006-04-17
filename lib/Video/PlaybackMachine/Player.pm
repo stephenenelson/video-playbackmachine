@@ -179,6 +179,11 @@ sub stop {
 sub play_still {
   my ($self, $kernel, $heap, $still, $callback, $time) = @_[OBJECT, KERNEL, HEAP, ARG0, ARG1];
   my $log = $self->{'logger'};
+  if ($heap->{'stream'}->get_status() == XINE_STATUS_PLAY) {
+  		$log->error("Attempted to show still '$still' while playing a movie");
+  		$callback->(PLAYBACK_ERROR);
+  		return;
+  }
   $log->debug("Showing still '$_[ARG0]'");
   eval {
     $heap->{'display'}->displayStill($heap->{'window'}, $still);
@@ -186,6 +191,7 @@ sub play_still {
   if ($@) {
     $log->error("Error displaying still '$still': $@");
     $callback->(PLAYBACK_ERROR);
+    return;
   }
 
   if (defined $time) {
