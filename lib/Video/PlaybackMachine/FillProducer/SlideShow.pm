@@ -101,8 +101,6 @@ sub is_available
 ##
 ## Displays a set of random still frames.
 ##
-# TODO: May be able to eliminate all POE code except for Player post
-# by turning the mechanism into a repeated subroutine call.
 sub show_slide
 {
 	my ( $self, $kernel, $heap ) = @_[ OBJECT, KERNEL, HEAP ];
@@ -150,6 +148,7 @@ sub start
 	my $self = shift;
 	my ($planned_time) = @_;
 
+	$self->{'logger'}->debug("Starting slideshow");
 	my $heap = $poe_kernel->get_active_session->get_heap();
 	$heap->{'slide_start_time'} = time();
 	$heap->{'planned_time'}     = $planned_time;

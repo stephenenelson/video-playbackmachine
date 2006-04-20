@@ -164,7 +164,7 @@ sub stop {
   if ( $heap->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
     $heap->{'stream'}->stop();
   }
-
+  
 }
 
 ##
@@ -180,7 +180,9 @@ sub stop {
 sub play_still {
   my ($self, $kernel, $heap, $still, $callback, $time) = @_[OBJECT, KERNEL, HEAP, ARG0, ARG1];
   my $log = $self->{'logger'};
-  if ($heap->{'stream'}->get_status() == XINE_STATUS_PLAY) {
+  if ($heap->{'stream'}->get_status() == XINE_STATUS_PLAY
+  	&& $heap->{'playback_type'} == PLAYBACK_TYPE_MOVIE 
+  ) {
   		$log->error("Attempted to show still '$still' while playing a movie");
   		return;
   }

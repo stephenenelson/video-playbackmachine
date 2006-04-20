@@ -78,6 +78,8 @@ BEGIN {
 
 		$config->define( 'player_backend_class=s',
 			{ DEFAULT => 'XineBackEnd' } );
+			
+		$config->define( 'player_verbose=i', { DEFAULT => 0 } );
 
 		foreach my $config_file (@Config_Files) {
 			-e $config_file or next;
