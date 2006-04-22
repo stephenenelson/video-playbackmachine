@@ -22,7 +22,6 @@ use Video::PlaybackMachine::FillProducer::FillShort;
 use Video::PlaybackMachine::FillProducer::StillFrame;
 use Video::PlaybackMachine::FillProducer::UpNext;
 use Video::PlaybackMachine::FillProducer::NextSchedule;
-use Video::PlaybackMachine::MemoryLogger;
 
 our $Config_Default = '/home/steven/dev/Video-PlaybackMachine/conf/playback_log.conf';
 
@@ -67,9 +66,6 @@ MAIN: {
 				}
 			}
 			
-			my $memory_logger = Video::PlaybackMachine::MemoryLogger->new();
-			$memory_logger->spawn();
-
 			my $watcher = Video::PlaybackMachine::DatabaseWatcher->new(
 				dbh     => $table->getDbh(),
 				table   => 'content_schedule',
