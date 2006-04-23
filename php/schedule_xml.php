@@ -12,7 +12,7 @@
   exit;
 }
 
-$result = pg_query($database, "SELECT ID, TITLE, EXTRACT(EPOCH FROM start_time) AS START_TIME, EXTRACT(EPOCH FROM AVFILE_DURATION) AS DURATION FROM schedule_times where schedule='$_REQUEST[schedule]' ORDER BY START_TIME");
+$result = pg_query($database, "SELECT ID, TITLE, EXTRACT(EPOCH FROM start_time) AS START_TIME, EXTRACT(EPOCH FROM AVFILE_DURATION(TITLE)) AS DURATION FROM schedule_times where schedule='$_REQUEST[schedule]' ORDER BY START_TIME");
 if (!$result) {
   echo "Error: " . pg_last_error();
   exit;
