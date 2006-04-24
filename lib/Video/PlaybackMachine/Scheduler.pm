@@ -50,6 +50,9 @@ use constant PLAY_MODE => 3;
 use constant RESTART_INTERVAL => 3 * 60 * 60;
 #use constant RESTART_INTERVAL => 7;
 
+# Clock resolution: how often we'll update our apparent clock in the process table (seconds)
+use constant TIME_TICK => 5;
+
 ############################## Class Methods ##############################
 
 
@@ -98,7 +101,7 @@ sub spawn {
 
   POE::Session->create(
 		       object_states => [ 
-					 $self => [qw(_start finished update play_scheduled warning_scheduled schedule_next shutdown wait_for_scheduled query_next_scheduled)]
+					 $self => [qw(_start time_tick finished update play_scheduled warning_scheduled schedule_next shutdown wait_for_scheduled query_next_scheduled)]
 					],
 		       );
 }
@@ -237,9 +240,24 @@ sub _start {
   $heap->{player_session} = $self->{player}->spawn();
   $heap->{filler_session} = $self->{filler}->spawn();
 
+  # Start the time ticker
+  $kernel->delay('time_tick', TIME_TICK);
+
   # Check the database for things that need playing
   $kernel->yield('update');
 
+}
+
+##
+## time_tick()
+##
+## Updates the process table entry with the current time (according to the schedule)
+##
+sub time_tick
+{
+	my $time = $_[OBJECT]->schedule_to_real();
+	$0 = "playback_machine: " . scalar localtime($time);
+	$_[KERNEL]->delay('time_tick', TIME_TICK);
 }
 
 ##
