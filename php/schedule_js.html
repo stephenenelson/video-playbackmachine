@@ -85,13 +85,24 @@ function getScheduleEntries()
 	var schedule_entries = new Array;
 
 	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.open("GET", "http://theluggage/schedule_xml.php?schedule=BayCon+2006", true);
+	xmlhttp.open("GET", "http://theluggage/schedule_xml.php?schedule=BayCon+2006", false);
 	xmlhttp.send(null);
 	if (xmlhttp.status == 200) {
-		alert("Succeeded!");
+	       var doc = xmlhttp.responseXML;
+	       var elements = doc.getElementsByTagName("entry");
+	       for (var i = 0; i < elements.length; i++) {
+		   var entry = elements[i];
+		   var sched_id = entry.getAttribute("id");
+		   var start_time = entry.getAttribute("start_time");
+		   var duration = entry.getAttribute("duration");
+		   var title = entry.childNodes[0].nodeValue;
+		   
+		   sched_entry = new ScheduleEntry(sched_id, title, start_time, duration);
+		   schedule_entries.push( sched_entry );
+	       }
 	}
 	else {
-		alert("Failed!");
+		alert("Failed! Status was " + xmlhttp.status);
 	}
 		
 	return schedule_entries;
@@ -103,6 +114,7 @@ function ScheduleEntry(id, title, start_time, duration)
 	this.title = title;
 	this.start_time = start_time;
 	this.duration = duration;
+	this.toString = function() { return "ID: " + id + " Title: " + title + " Start time: " + start_time + " Duration: " + duration; };
 }
 function editTitle(event)
 {
