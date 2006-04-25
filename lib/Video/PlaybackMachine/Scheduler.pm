@@ -18,6 +18,7 @@ use Date::Manip;
 
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
 use Video::PlaybackMachine::ScheduleView;
+use Video::PlaybackMachine::Config;
 
 use Time::Duration;
 
@@ -45,10 +46,6 @@ use constant FILL_MODE => 2;
 
 # Playing scheduled content
 use constant PLAY_MODE => 3;
-
-## Auto-restart interval-- Minimum number of seconds between restarts
-use constant RESTART_INTERVAL => 3 * 60 * 60;
-#use constant RESTART_INTERVAL => 7;
 
 # Clock resolution: how often we'll update our apparent clock in the process table (seconds)
 use constant TIME_TICK => 5;
@@ -331,10 +328,13 @@ sub finished {
   my $now = time();
 
   # If we've been running longer than the restart interval, restart the system
-  #if ( ($now - $^T) > RESTART_INTERVAL ) {
-  #  $self->{'logger'}->info("Shutting down for restart");
-  #  exit(0);
-  #}
+  my $config = Video::PlaybackMachine::Config->config();
+  if ($config->get_restart_interval() > 0) {
+  	if ( ($now - $^T) > $config->get_restart_interval() ) {
+    		$self->{'logger'}->info("Shutting down for restart");
+    		exit(0);
+  	}
+  }
 
   # We're in idle mode now
   $self->{mode} = IDLE_MODE;

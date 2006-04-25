@@ -53,6 +53,8 @@ BEGIN {
 		$config->define( 'music', { ARGS => '=s' } );
 
 		$config->define( 'fill', { ARGS => '=s@' } );
+		
+		$config->define( 'restart_interval', { ARGS => '=i', DEFAULT => 3 * 60 * 60 } );
 
 		$config->define('logo=s');
 
