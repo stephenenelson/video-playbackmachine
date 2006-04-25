@@ -120,6 +120,7 @@ sub _segments_left {
 ## time has been reserved for all of the segments with
 ## higher priorities than this.
 ##
+# TODO Slideshow expects the time remaining to be the expected preferred time
 sub _seconds_remaining {
   my $self = shift;
   my ($current_segment, $time_left_in_break) = @_;
