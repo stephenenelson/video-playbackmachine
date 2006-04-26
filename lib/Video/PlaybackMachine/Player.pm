@@ -72,7 +72,8 @@ sub _start {
   $_[HEAP]->{'window'} = $display->createWindow();
   $display->sync();
   my $xine = Video::Xine->new();
-  $xine->set_param(XINE_ENGINE_PARAM_VERBOSITY, Video::PlaybackMachine::Config->player_verbose());
+  my $config = Video::PlaybackMachine::Config->config();
+  $xine->set_param(XINE_ENGINE_PARAM_VERBOSITY, $config->player_verbose());
   $_[HEAP]->{'xine'} = $xine;
   my $x11_visual = Video::Xine::Util::make_x11_visual($display,
 						      $display->getDefaultScreen(),
