@@ -82,6 +82,8 @@ BEGIN {
 			{ DEFAULT => 'XineBackEnd' } );
 			
 		$config->define( 'player_verbose=i', { DEFAULT => 0 } );
+		
+		$config->define( 'stderr_log=s' );
 
 		foreach my $config_file (@Config_Files) {
 			-e $config_file or next;
