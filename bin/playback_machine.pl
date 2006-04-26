@@ -44,8 +44,8 @@ MAIN: {
 		}
 		else {
 			
-			open(STDERR, $config->stderr_log(), 'w')
-				or die "Couldn't open '$Config_Default' for STDERR log: $!; stopped";
+			open(STDERR, '>' . $config->stderr_log())
+				or die "Couldn't open '" . $config->stderr_log() ."' for STDERR log: $!; stopped";
 
 			my $offset = $config->offset() - ( time() - $start_time );
 			$date = $config->start();
