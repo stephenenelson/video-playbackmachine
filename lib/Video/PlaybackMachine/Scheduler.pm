@@ -325,12 +325,12 @@ sub update {
 sub finished {
   my ($self, $kernel, $request, $response) = @_[OBJECT, KERNEL, ARG0, ARG1];
 
-  my $now = time();
 
   # If we've been running longer than the restart interval, restart the system
   my $config = Video::PlaybackMachine::Config->config();
-  if ($config->get_restart_interval() > 0) {
-  	if ( ($now - $^T) > $config->get_restart_interval() ) {
+  if ($config->restart_interval() > 0) {
+	  my $now = time();
+  	if ( ($now - $^T) > $config->restart_interval() ) {
     		$self->{'logger'}->info("Shutting down for restart");
     		exit(0);
   	}
