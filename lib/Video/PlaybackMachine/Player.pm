@@ -72,7 +72,7 @@ sub _start {
   $_[HEAP]->{'window'} = $display->createWindow();
   $display->sync();
   my $xine = Video::Xine->new();
-  $xine->set_param(XINE_ENGINE_PARAM_VERBOSITY, XINE_VERBOSITY_DEBUG);
+  $xine->set_param(XINE_ENGINE_PARAM_VERBOSITY, Video::PlaybackMachine::Config->player_verbose());
   $_[HEAP]->{'xine'} = $xine;
   my $x11_visual = Video::Xine::Util::make_x11_visual($display,
 						      $display->getDefaultScreen(),
