@@ -1,8 +1,7 @@
 function updatePage(num_days)
 {
 	var schedule_node = document.getElementById("schedule");
-	addTimeNodes();
-	updateScheduleEntries(num_days, schedule_node);
+	updateDays(num_days, schedule_node);
 
 }
 
@@ -40,6 +39,7 @@ function updateDays(num_days, schedule_node)
 	for (var idx=0; idx < num_days; idx++) {
 		var schedule_day_node = document.createElement('div');
 		schedule_day_node.className = 'schedule-day';
+		schedule_entries = getScheduleEntries();
 		addScheduleNodes(idx, schedule_day_node, schedule_entries);
 		schedule_node.appendChild(schedule_day_node);
 	}
@@ -93,7 +93,7 @@ function makeScheduleDaySlot(top, height, title)
 	return schedule_day_slot;
 }
 
-function updateScheduleEntries()
+function getScheduleEntries()
 {
 	var schedule_entries = new Array;
 

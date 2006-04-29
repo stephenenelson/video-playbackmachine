@@ -23,7 +23,7 @@ if (!$result) {
 <?php
 while ($arr = pg_fetch_array($result)) {	
 ?>
-	<entry id="<?php echo $arr[ID] ?>" start_time="<?php echo $arr['START_TIME']?>" duration="<?php echo $arr['DURATION'] ?>"><?php echo $arr['TITLE'] ?></entry>
+	<entry id="<?php echo $arr[0] ?>" start_time="<?php echo $arr[2]?>" duration="<?php echo $arr[3] ?>"><?php echo $arr[1] ?></entry>
 <?php
 }
 ?>
