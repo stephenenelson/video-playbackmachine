@@ -1,15 +1,8 @@
-function updatePage()
+function updatePage(num_days)
 {
-	addTimeNodes();
 	var schedule_node = document.getElementById("schedule");
-	var schedule_entries = getScheduleEntries();
-
-	for (var idx=0; idx < 4; idx++) {
-		var schedule_day_node = document.createElement('div');
-		schedule_day_node.className = 'schedule-day';
-		addScheduleNodes(idx, schedule_day_node, schedule_entries);
-		schedule_node.appendChild(schedule_day_node);
-	}
+	addTimeNodes();
+	updateScheduleEntries(num_days, schedule_node);
 
 }
 
@@ -17,7 +10,11 @@ function addTimeNodes()
 {
 	var hour_px = (2800  / 24);
 
-	var time_node = document.getElementById('times');
+	var schedule_node = document.getElementById('schedule');
+	
+	var time_node = document.createElement('div');
+	time_node.className = 'schedule-times';
+	schedule_node.appendChild(time_node);
 	for (var hour=0; hour <= 23; hour++) {
 		var hour_node = document.createElement('p');
 		hour_node.className = 'schedule-time';
@@ -27,6 +24,28 @@ function addTimeNodes()
 		time_node.appendChild( hour_node );
 	}
 }
+
+
+
+function updateDays(num_days, schedule_node)
+{
+
+	while (schedule_node.firstChild)
+	{
+		schedule_node.removeChild(schedule_node.firstChild);
+	}
+
+	addTimeNodes();
+
+	for (var idx=0; idx < num_days; idx++) {
+		var schedule_day_node = document.createElement('div');
+		schedule_day_node.className = 'schedule-day';
+		addScheduleNodes(idx, schedule_day_node, schedule_entries);
+		schedule_node.appendChild(schedule_day_node);
+	}
+
+}
+
 
 function addScheduleNodes(idx, schedule_day_node, schedule_entries)
 {
@@ -74,7 +93,7 @@ function makeScheduleDaySlot(top, height, title)
 	return schedule_day_slot;
 }
 
-function getScheduleEntries()
+function updateScheduleEntries()
 {
 	var schedule_entries = new Array;
 
