@@ -122,6 +122,9 @@ sub play {
     $heap->{'stream'}->stop();
     $heap->{'stream'}->close();
   }
+  
+  # Clear out any previous events
+  $heap->{'stream_queue'}->clear_events();
 
   $log->info("Playing $files[0]");
 
@@ -245,6 +248,7 @@ sub play_music {
   }
   else {
     $self->{'logger'}->debug("Playing music file '$song_file'");
+    $heap->{'stream_queue'}->clear_events();
     $heap->{'stream'}->open($song_file)
       or do {
 	$self->{'logger'}->warn("Unable to play '$song_file'");
@@ -358,6 +362,13 @@ sub _start {
     or die "Couldn't create Xine::Event::Queue";
 
   $kernel->yield('get_events');
+}
+
+
+sub clear_events {
+	my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
+	
+	1 while $heap->{queue}->get_event();	
 }
 
 sub get_events {
