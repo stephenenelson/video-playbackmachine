@@ -30,7 +30,7 @@ use constant DEFAULT_SKIP_TOLERANCE => 30;
 
 use constant DEFAULT_IDLE_TOLERANCE => 15;
 
-our $Minimum_Fill = 5;
+our $Minimum_Fill = 7;
 
 
 ## Modes of operation
