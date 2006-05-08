@@ -61,7 +61,7 @@ MAIN: {
 			my $offset = 0;
 			$date = $config->start();
 
-			if ( defined($config->offset()) ) {
+			if ( $config->offset() > 0 ) {
 				$offset = $config->offset() - ( time() - $start_time );				
 
 				if ( defined($date) ) {
