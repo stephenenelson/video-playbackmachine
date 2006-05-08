@@ -347,6 +347,9 @@ sub new {
 	      logger => Log::Log4perl->get_logger('Video.PlaybackMachine.Player.EventWheel'),	     
 	     };
 
+  $self->{queue} = Video::Xine::Event::Queue->new($self->{'stream'})
+    or die "Couldn't create Xine::Event::Queue";
+
   bless $self, $type;
 }
 
@@ -362,16 +365,13 @@ sub spawn {
 sub _start {
   my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
 
-  $self->{queue} = Video::Xine::Event::Queue->new($self->{'stream'})
-    or die "Couldn't create Xine::Event::Queue";
-
   $kernel->yield('get_events');
 }
 
 
 sub clear_events {
 	my $self = shift;
-	
+		
 	1 while $self->{queue}->get_event();	
 }
 
