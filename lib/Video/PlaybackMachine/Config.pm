@@ -91,7 +91,7 @@ BEGIN {
 			  or die "Couldn't load config file '@Config_Files': $!; stopped";
 		}
 		
-		$config->define( 'x_display=s', { DEFAULT => '0:0' } );
+		$config->define( 'x_display=s', { DEFAULT => ':0.0' } );
 
 		$config->getopt();
 
