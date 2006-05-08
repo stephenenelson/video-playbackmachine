@@ -47,12 +47,10 @@ MAIN: {
 			open(STDERR, '>' . $config->stderr_log())
 				or die "Couldn't open '" . $config->stderr_log() ."' for STDERR log: $!; stopped";
 
-			my $offset = $config->offset() - ( time() - $start_time );
-			$date = $config->start();
-
 			Log::Log4perl::init(
 				$Config_Default
 			);
+
 
 			my $schedule_name = $config->schedule();
 
@@ -60,13 +58,21 @@ MAIN: {
 			  Video::PlaybackMachine::ScheduleTable::DB->new(
 				schedule_name => $schedule_name, );
 
-			if ( defined $date ) {
-				if ( $date eq 'first' ) {
-					$offset += $table->get_offset_to_first() - 1;
+			my $offset = 0;
+			$date = $config->start();
+
+			if ( defined($config->offset()) ) {
+				$offset = $config->offset() - ( time() - $start_time );				
+
+				if ( defined($date) ) {
+					if ( $date eq 'first' ) {
+						$offset += $table->get_offset_to_first() + 1;
+					}
+					else {
+						$offset += $table->get_offset($date);
+					}
 				}
-				else {
-					$offset += $table->get_offset($date);
-				}
+			
 			}
 			
 			my $watcher = Video::PlaybackMachine::DatabaseWatcher->new(
