@@ -33,6 +33,7 @@ use constant PLAYBACK_OK => 1;
 # ERROR == problem in trying to play
 use constant PLAYBACK_ERROR => 2;
 
+# TODO Move to config file
 use constant X_DISPLAY => ':0.0';
 
 ## Types of playback
@@ -82,6 +83,7 @@ sub _start {
 						      $display->getHeight(),
 						      $display->getPixelAspect()
 						     );
+	# TODO Move "auto" to config file
   my $driver = Video::Xine::Driver::Video->new($xine,"auto",1,$x11_visual);
   my $s = $xine->stream_new(undef, $driver)
     or croak "Unable to open video stream";
@@ -115,6 +117,7 @@ sub play {
 
   my $log = $_[OBJECT]{'logger'};
 
+	# TODO Remove fatal
   @files or die "No files specified! stopped";
 
   # Stop if we're playing
@@ -340,6 +343,7 @@ sub new {
 	      type => $type,
 	      stream => $stream,
 	      handlers => { %handlers },
+	      queue => undef,
 	      logger => Log::Log4perl->get_logger('Video.PlaybackMachine.Player.EventWheel'),	     
 	     };
 
@@ -358,7 +362,7 @@ sub spawn {
 sub _start {
   my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
 
-  $heap->{queue} = Video::Xine::Event::Queue->new($self->{'stream'})
+  $self->{queue} = Video::Xine::Event::Queue->new($self->{'stream'})
     or die "Couldn't create Xine::Event::Queue";
 
   $kernel->yield('get_events');
@@ -366,16 +370,16 @@ sub _start {
 
 
 sub clear_events {
-	my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
+	my $self = shift;
 	
-	1 while $heap->{queue}->get_event();	
+	1 while $self->{queue}->get_event();	
 }
 
 sub get_events {
   my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
 
   # Translate all events into callbacks
-  while ( my $event = $heap->{queue}->get_event() ) {
+  while ( my $event = $self->{queue}->get_event() ) {
     $self->{'logger'}->debug("Received event: ", $event->get_type(), "\n");
     if ( $event->get_type() == XINE_EVENT_UI_PLAYBACK_FINISHED ) {
       $self->{'stream'}->close();
@@ -389,9 +393,6 @@ sub get_events {
   # Keep checking so long as we're playing
   if ( $self->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
     $kernel->delay('get_events', XINE_CHECK_INTERVAL_SECS);
-  }
-  else {
-    delete $heap->{queue};
   }
 }
 
