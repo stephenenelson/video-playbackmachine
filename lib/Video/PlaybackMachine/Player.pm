@@ -16,6 +16,7 @@ use POE;
 use X11::FullScreen;
 use Video::Xine;
 use Video::PlaybackMachine::EventWheel::FullScreen;
+use Video::PlaybackMachine::Config;
 use Log::Log4perl;
 use Carp;
 
@@ -33,8 +34,7 @@ use constant PLAYBACK_OK => 1;
 # ERROR == problem in trying to play
 use constant PLAYBACK_ERROR => 2;
 
-# TODO Move to config file
-use constant X_DISPLAY => ':0.0';
+use constant X_DISPLAY => Video::PlaybackMachine::Config->config()->x_display();
 
 ## Types of playback
 use constant PLAYBACK_TYPE_MUSIC => 0;
