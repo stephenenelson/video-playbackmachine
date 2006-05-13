@@ -4,6 +4,12 @@ use strict;
 use warnings;
 use diagnostics;
 
+=head1 NAME
+
+Video::PlaybackMachine::ContentManager: Routines to assist in managing PlaybackMachine content
+
+=cut
+
 use Video::Xine;
 use File::Basename;
 use POSIX 'ceil';
@@ -21,10 +27,18 @@ our $Database_Name = 'playback_machine';
 
 ######################## Subroutines ############################
 
-##
-## Returns any avi entries which do not exist on the
-## local file system. Note: will not decode MRLs; assumes
-## straight filenames.
+=head1 EXPORTED SUBROUTINES
+
+=over 4
+
+=item B<get_missing($FILENAME)>
+
+Returns any avi entries which do not exist on the
+local file system. Note: will not decode MRLs; assumes
+straight filenames.
+
+=cut
+
 sub get_missing {
   my ($filename) = @_;
 
@@ -41,6 +55,15 @@ sub get_missing {
   
   return @missing;
 }
+
+
+=item B<get_title($filename)>
+
+Turns a filename into a default title by removing the suffix, deleting type 
+prefixes (such as 'movie', 'music', or 'short'), transforming underscores to spaces,
+and capitalizing words.
+
+=cut
 
 sub get_title {
   my ($filename) = @_;
@@ -73,6 +96,13 @@ sub get_dbh {
 
 }
 
+=item B<get_length($FILENAME)>
+
+If $FILENAME is readable by Xine, returns the file length. If $FILENAME is unreadable
+or nonexistent, croaks with "Couldn't open '$FILENAME'".
+
+=cut
+
 sub get_length {
   my ($filename) = @_;
 
@@ -86,6 +116,15 @@ sub get_length {
 
   return ceil($length_millis / 1000);
 }
+
+
+=item B<add_movie($FILENAME, $TITLE, $LENGTH)>
+
+Adds a movie to the database as schedulable content, with $FILENAME as the filename, $TITLE
+as the title, and $LENGTH as the length.  $TITLE and $LENGTH are optional; if they're left out,
+they'll be derived from the file.
+
+=cut
 
 sub add_movie {
   my ($filename, $title, $length) = @_;
@@ -103,6 +142,14 @@ sub add_movie {
   $dbh->commit();
 
 }
+
+=item B<add_fill($FILENAME, $TITLE, $LENGTH)>
+
+Adds a movie to the database as fill content, with $FILENAME as the filename, $TITLE
+as the title, and $LENGTH as the length. $TITLE and $LENGTH are optional; they'll be derived
+from the movie file if not specified.
+
+=cut
 
 sub add_fill {
   my ($filename, $title, $length) = @_;
