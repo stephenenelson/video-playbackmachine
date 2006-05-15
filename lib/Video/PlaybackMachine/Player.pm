@@ -308,7 +308,7 @@ sub get_status {
   my $heap = $session->get_heap();
 
   if (! defined $heap->{'stream'} ) {
-    $self->{'logger'}->fatal("Undefined stream! Called on session $session");
+    $self->{'logger'}->fatal("Undefined stream! Called on session $session, caller " . join(' ', caller()) );
     confess("Undefined stream!");
   }
 
