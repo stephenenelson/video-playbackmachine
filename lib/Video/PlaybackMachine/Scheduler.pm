@@ -252,8 +252,8 @@ sub _start {
 ##
 sub time_tick
 {
-	my $time = $_[OBJECT]->schedule_to_real();
-	$0 = "playback_machine: " . scalar localtime($time);
+	my $time = $_[OBJECT]->real_to_schedule(time());
+	$0 = "playback_machine: " . scalar localtime($time) . "($time)";
 	$_[KERNEL]->delay('time_tick', TIME_TICK);
 }
 

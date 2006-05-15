@@ -87,7 +87,7 @@ sub _start {
   my $driver = Video::Xine::Driver::Video->new($xine,"auto",1,$x11_visual);
   my $s = $xine->stream_new(undef, $driver)
     or croak "Unable to open video stream";
-  $_[HEAP]->{'stream'} = $s;
+  $_[OBJECT]->{'stream'} = $s;
   $_[HEAP]->{'stream_queue'} =
     Video::PlaybackMachine::Player::EventWheel->new($s);
   my $fq =
@@ -121,9 +121,9 @@ sub play {
   @files or die "No files specified! stopped";
 
   # Stop if we're playing
-  if ( $heap->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
-    $heap->{'stream'}->stop();
-    $heap->{'stream'}->close();
+  if ( $self->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
+    $self->{'stream'}->stop();
+    $self->{'stream'}->close();
   }
   
   # Clear out any previous events
@@ -131,7 +131,7 @@ sub play {
 
   $log->info("Playing $files[0]");
 
-  my $s = $_[HEAP]->{'stream'};
+  my $s = $_[OBJECT]->{'stream'};
   $s->open($files[0])
     or do {
       $log->error("Unable to open '$files[0]': Error " . $s->get_error());
@@ -165,11 +165,9 @@ sub play {
 ## Stops the currently-playing movie.
 ##
 sub stop {
-  my $heap = $_[HEAP];
-
   # Stop if we're playing
-  if ( $heap->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
-    $heap->{'stream'}->stop();
+  if ( $_[OBJECT]->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
+    $_[OBJECT]->{'stream'}->stop();
   }
   
 }
@@ -187,7 +185,7 @@ sub stop {
 sub play_still {
   my ($self, $kernel, $heap, $still, $callback, $time) = @_[OBJECT, KERNEL, HEAP, ARG0, ARG1];
   my $log = $self->{'logger'};
-  if ($heap->{'stream'}->get_status() == XINE_STATUS_PLAY
+  if ($self->{'stream'}->get_status() == XINE_STATUS_PLAY
   	&& $heap->{'playback_type'} == PLAYBACK_TYPE_MOVIE 
   ) {
   		$log->error("Attempted to show still '$still' while playing a movie");
@@ -242,7 +240,7 @@ sub play_music {
   if ($self->get_status() == PLAYER_STATUS_PLAY) {
     if ($heap->{'playback_type'} == PLAYBACK_TYPE_MOVIE) {
       $self->{'logger'}->warn("Attempted to play '$song_file' while a movie is playing");
-      $callback->($heap->{'stream'}, PLAYBACK_ERROR);
+      $callback->($self->{'stream'}, PLAYBACK_ERROR);
       return;
     }
     else {
@@ -252,13 +250,13 @@ sub play_music {
   else {
     $self->{'logger'}->debug("Playing music file '$song_file'");
     $heap->{'stream_queue'}->clear_events();
-    $heap->{'stream'}->open($song_file)
+    $self->{'stream'}->open($song_file)
       or do {
 	$self->{'logger'}->warn("Unable to play '$song_file'");
-	$callback->($heap->{'stream'}, PLAYBACK_ERROR);
+	$callback->($self->{'stream'}, PLAYBACK_ERROR);
 	return;
       };
-    $heap->{'stream'}->play(0,0);
+    $self->{'stream'}->play(0,0);
     $heap->{'stream_queue'}->set_stop_handler($callback);
     $heap->{'stream_queue'}->spawn();
     $heap->{'playback_type'} = PLAYBACK_TYPE_MUSIC;
@@ -307,12 +305,12 @@ sub get_status {
   my $session = $poe_kernel->get_active_session();
   my $heap = $session->get_heap();
 
-  if (! defined $heap->{'stream'} ) {
+  if (! defined $self->{'stream'} ) {
     $self->{'logger'}->fatal("Undefined stream! Called on session $session, caller " . join(' ', caller()) );
     confess("Undefined stream!");
   }
 
-  $heap->{'stream'}->get_status() == XINE_STATUS_PLAY
+  $self->{'stream'}->get_status() == XINE_STATUS_PLAY
     and return PLAYER_STATUS_PLAY;
 
   return PLAYER_STATUS_STOP;
