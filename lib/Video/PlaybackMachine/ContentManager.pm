@@ -18,7 +18,7 @@ use Carp;
 use DBI;
 
 use base 'Exporter';
-our @EXPORT_OK = qw(get_title get_length add_movie add_fill get_missing);
+our @EXPORT_OK = qw(get_title get_length add_movie add_fill get_missing fix_lengths);
 
 
 ####################### Module Constants #########################
@@ -142,6 +142,25 @@ sub add_movie {
   $dbh->commit();
 
 }
+
+=item fix_all_lengths()
+
+=cut
+sub fix_lengths {
+  my $dbh = get_dbh();
+  my $sth = $dbh->prepare('SELECT title, file FROM av_file_component');
+  $sth->execute();
+
+  while ( my ($title, $file)  = $sth->fetchrow_array() ) {
+    my $duration = get_length($file)
+      or next;
+    print STDOUT "Setting '$file' duration to $duration seconds\n";
+    $dbh->do("UPDATE av_file_component SET duration=? WHERE file=?", {}, "$duration seconds", $file)
+	or die "Couldn't update '$file': $DBI::errstr";
+  }
+  
+}
+
 
 =item B<add_fill($FILENAME, $TITLE, $LENGTH)>
 

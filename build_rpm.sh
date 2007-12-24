@@ -1,0 +1,1 @@
+cpan2rpm --requires="postgresql-server, perl-DBD-Pg" --requires="perl-AppConfig, perl-Image-Imlib2, perl-Log-Log4perl, perl-POE, perl-Test-MockObject, perl-Time-Duration" --requires="perl-Video-Xine" --requires="perl-X11-FullScreen" .
