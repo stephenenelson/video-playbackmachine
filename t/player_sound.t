@@ -1,10 +1,14 @@
 use strict;
 
+use FindBin '$Bin';
+
 use POE;
 use POE::Session;
 use POE::Kernel;
 
 use Video::PlaybackMachine::Player;
+
+use Test::More skip_all => 'Need to finish this test';
 
 my $player = Video::PlaybackMachine::Player->new();
 $player->spawn();
@@ -25,12 +29,12 @@ POE::Session->create(
 					 $_[KERNEL]->post('Player',
 							  'play_music',
 							  $_[SESSION]->postback('finished'),
-							  '/home/steven/ogg/scifigreatest_hits_vol1/scifis_greatest_hits_vol_1__final_frontiers/jerry_goldsmith__total_recall.oggls
-'
+							  "$Bin/test_movies/drunk_as_an_owl.ogg"
 							 );
 				       },
 				       finished => sub {
-					 print STDERR "All done! Status was $_[ARG0]\n";
+					 
+					 
 				       }
 
 				      }
