@@ -25,7 +25,8 @@ use Log::Log4perl;
 
 our @Config_Files = (
 "$ENV{'HOME'}/Documents/workspace/Video-PlaybackMachine/conf/playback_machine.conf",
-	"$ENV{'HOME'}/dev/Video-PlaybackMachine/conf/playback_machine.conf"
+	"$ENV{'HOME'}/dev/Video-PlaybackMachine/conf/playback_machine.conf",
+	"/etc/playback_machine/playback_machine.conf"
 );
 
 BEGIN {

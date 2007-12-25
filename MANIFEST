@@ -14,7 +14,6 @@ conf/playback_log.conf
 conf/playback_machine.conf
 INSTALL
 install.sh
-lib/Changes
 lib/Video/PlaybackMachine.pm
 lib/Video/PlaybackMachine/AbstractListable.pm
 lib/Video/PlaybackMachine/AVFile.pm
