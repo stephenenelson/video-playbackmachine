@@ -2,6 +2,7 @@ Revision history for Perl extension Video::PlaybackMachine.
 
 0.04  Sun Dec 23 18:20:52 2007
 	- Skipped failing tests
+        - Eliminated all references to development environment
 	- Cleaned up for RPM packaging
 
 0.03  Sun Jun 12 10:23:02 2005
