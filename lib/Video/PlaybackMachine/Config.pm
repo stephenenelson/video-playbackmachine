@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use diagnostics;
 
+
+
 =pod
 
 =head1 NAME
@@ -21,11 +23,12 @@ Provides configuration values for Video::PlaybackMachine. This manual describes 
 use AppConfig qw(:expand :argcount);
 our @ISA = qw(AppConfig);
 
+use FindBin '$Bin';
+
 use Log::Log4perl;
 
 our @Config_Files = (
-"$ENV{'HOME'}/Documents/workspace/Video-PlaybackMachine/conf/playback_machine.conf",
-	"$ENV{'HOME'}/dev/Video-PlaybackMachine/conf/playback_machine.conf",
+	"$Bin/../conf/playback_machine.conf",
 	"/etc/playback_machine/playback_machine.conf"
 );
 
@@ -86,6 +89,8 @@ BEGIN {
 		
 		$config->define( 'stderr_log=s' );
 
+		$config->define( 'log_config_file=s' );
+
 		foreach my $config_file (@Config_Files) {
 			-e $config_file or next;
 			$config->file($config_file)
@@ -116,6 +121,15 @@ BEGIN {
 		return $class->new( name => '$backend_name' );
 
 	}
+
+}
+
+sub init_logging {
+  my $type = shift;
+
+  my $config = $type->config();
+
+  Log::Log4perl::init_once( $config->log_config_file() );
 
 }
 

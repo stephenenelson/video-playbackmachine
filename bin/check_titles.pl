@@ -9,6 +9,7 @@ use POE;
 use POE::Session;
 use POE::Kernel;
 
+use Video::PlaybackMachine::Config;
 use Video::PlaybackMachine::Player;
 use DBI;
 
@@ -21,8 +22,7 @@ our $Scan_Seconds = 3;
 MAIN: {
 
   # Initialize logger
-  # TODO Move log4perl init to config file
-  Log::Log4perl::init('/home/steven/dev/Video-PlaybackMachine/conf/playback_log.conf');  
+  Video::PlaybackMachine::Config->init_logging();
 
   # Get movies from database
   my @movies = get_movies();

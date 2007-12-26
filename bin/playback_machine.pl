@@ -23,8 +23,6 @@ use Video::PlaybackMachine::FillProducer::StillFrame;
 use Video::PlaybackMachine::FillProducer::UpNext;
 use Video::PlaybackMachine::FillProducer::NextSchedule;
 
-our $Config_Default = '/home/steven/dev/Video-PlaybackMachine/conf/playback_log.conf';
-
 our $config = Video::PlaybackMachine::Config->config();
 
 our $Skip_Tolerance = $config->skip_tolerance();
@@ -48,7 +46,7 @@ MAIN: {
 				or die "Couldn't open '" . $config->stderr_log() ."' for STDERR log: $!; stopped";
 
 			Log::Log4perl::init(
-				$Config_Default
+				$config->log_config_file()
 			);
 
 
