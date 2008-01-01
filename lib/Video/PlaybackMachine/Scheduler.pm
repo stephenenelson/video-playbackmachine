@@ -15,6 +15,7 @@ use POE;
 use POE::Session;
 use Log::Log4perl;
 use Date::Manip;
+use POSIX 'INT_MAX';
 
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
 use Video::PlaybackMachine::ScheduleView;
@@ -62,6 +63,8 @@ use constant TIME_TICK => 5;
 ##  player => Video::PlaybackMachine::Player (optional)
 ##  filler => Video::PlaybackMachine::Filler (optional)
 ##  skip_tolerance => integer: seconds (optional)
+##  terminate_on_finish => boolean (default: true)
+##  run_forever => boolean (default: false)
 ##
 sub new {
   my $type = shift;
@@ -69,10 +72,13 @@ sub new {
 
   defined $in{schedule_table} or croak "Argument 'schedule_table' required; stopped";
   defined $in{skip_tolerance} or $in{skip_tolerance} = DEFAULT_SKIP_TOLERANCE;
+  defined $in{'terminate_on_finish'} or $in{'terminate_on_finish'} = 1;
+  defined $in{'run_forever'} or $in{'run_forever'} = 0;
 
 
   my $self = {
-	      terminate_on_finish => 1,
+	      terminate_on_finish => $in{'terminate_on_finish'},
+	      run_forever => $in{'run_forever'},
 	      skip_tolerance => $in{skip_tolerance},
 	      schedule_table => $in{schedule_table},
 	      player => $in{player} || Video::PlaybackMachine::Player->new(),
@@ -180,7 +186,13 @@ sub get_next_entry {
 
 sub get_time_to_next {
   my $self = shift;
-  return $self->{schedule_view}->get_time_to_next(@_);
+  my $schedule_to_next = $self->{schedule_view}->get_time_to_next(@_);
+  if ( (! defined($schedule_to_next) ) && $self->{'run_forever'} ) {
+    return INT_MAX;
+  }
+  else {
+    return $schedule_to_next;
+  }
 }
 
 sub schedule_to_real {
