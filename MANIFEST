@@ -52,8 +52,6 @@ lib/Video/PlaybackMachine/TimeLayout/FixedTimeLayout.pm
 lib/Video/PlaybackMachine/TimeLayout/GranularTimeLayout.pm
 lib/Video/PlaybackMachine/TimeLayout/RangeLayout.pm
 lib/Video/PlaybackMachine/TimeManager.pm
-log/playback_machine.log
-log/stderr.log
 Makefile.PL
 MANIFEST			This list of files
 README

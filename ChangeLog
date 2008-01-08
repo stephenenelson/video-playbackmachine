@@ -1,4 +1,11 @@
-Revision history for Perl extension Video::PlaybackMachine.
+2008-01-07  Stephen Nelson  <stephenenelson@mac.com>
+
+	* Moved "Changes" to "ChangeLog"
+	* Enabled expansions in configuration file
+	* Inlined Log4perl configuration file
+	* Added explicit OID to sql
+	* Started to re-create mock session
+	* Removed log files from dist
 
 0.04  Sun Dec 23 18:20:52 2007
 	- Skipped failing tests
