@@ -14,7 +14,7 @@ pm_to_blib
 # Temp, old and emacs backup files.
 ~$
 \.old$
-^#.*#$
+(^|/)#.*#$
 ^\.#
 
 
@@ -23,3 +23,6 @@ log/.*
 
 # Old revisions
 Video-PlaybackMachine-.+\.tar\.gz
+
+# Build-environment only utilities
+build_rpm\.sh
