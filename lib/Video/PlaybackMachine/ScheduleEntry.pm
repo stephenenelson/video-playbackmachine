@@ -77,7 +77,7 @@ sub get_title {
 }
 
 sub as_string {
-    return $[0]->get_title();
+    return $_[0]->get_title();
 }
 
 1;
