@@ -302,7 +302,7 @@ sub update {
     # If there's something supposed to be playing
     if ( my $entry = $self->should_be_playing() ) {
 
-      $self->{'logger'}->debug("Time to play ", $entry->getTitle());
+      $self->{'logger'}->debug("Time to play $entry");
 
       # Play it
       $kernel->yield('play_scheduled', $entry->get_listing(), $self->get_seek($entry));
