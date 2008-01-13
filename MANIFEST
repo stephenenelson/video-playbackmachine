@@ -12,7 +12,6 @@ conf/logrotate
 conf/playback_machine.conf
 INSTALL
 lib/Video/PlaybackMachine.pm
-lib/Video/PlaybackMachine/AbstractListable.pm
 lib/Video/PlaybackMachine/AVFile.pm
 lib/Video/PlaybackMachine/Config.pm
 lib/Video/PlaybackMachine/ContentManager.pm

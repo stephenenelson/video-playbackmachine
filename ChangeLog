@@ -1,3 +1,10 @@
+2008-01-12  Stephen Nelson  <stephenenelson@mac.com>
+
+	* Version '0.07'
+	* Added POD docs for AVFile
+	* Changed Movie getTitle() to get_title and added quote overload
+	
+
 2008-01-09  Stephen Nelson  <stephenenelson@mac.com>
 
 	* Bumped version to '0.06'
