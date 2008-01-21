@@ -94,24 +94,6 @@ BEGIN {
 
 }
 
-BEGIN {
-
-	my $backend;
-
-	sub get_player_backend {
-		my $self         = shift;
-		my $backend_name = $self->player_backend_class();
-		my $class = "Video::PlaybackMachine::PlayerBackEnd::$backend_name";
-		eval "require $class";
-		if ( length($@) ) {
-			die "Unable to load backend '$backend_name': $!; stopped";
-		}
-		return $class->new( name => '$backend_name' );
-
-	}
-
-}
-
 sub init_logging {
   my $type = shift;
 
