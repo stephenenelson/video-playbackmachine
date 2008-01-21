@@ -85,7 +85,7 @@ sub _start {
 						      $display->getPixelAspect()
 						     );
 	# TODO Move "auto" to config file
-  my $driver = Video::Xine::Driver::Video->new($xine,"auto",1,$x11_visual);
+  my $driver = Video::Xine::Driver::Video->new($xine,"auto",1,$x11_visual, $display);
   my $s = $xine->stream_new(undef, $driver)
     or croak "Unable to open video stream";
   $_[OBJECT]->{'stream'} = $s;
