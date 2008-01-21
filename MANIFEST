@@ -32,10 +32,10 @@ lib/Video/PlaybackMachine/FillProducer/TextFrame.pm
 lib/Video/PlaybackMachine/FillProducer/TextFrame/TextTable.pm
 lib/Video/PlaybackMachine/FillProducer/UpNext.pm
 lib/Video/PlaybackMachine/FillSegment.pm
-lib/Video/PlaybackMachine/Listable.pm
 lib/Video/PlaybackMachine/MemoryLogger.pm
 lib/Video/PlaybackMachine/Movie.pm
 lib/Video/PlaybackMachine/Player.pm
+lib/Video/PlaybackMachine/Player/EventWheel.pm
 lib/Video/PlaybackMachine/PlayerBackEnd.pm
 lib/Video/PlaybackMachine/PlayerBackEnd/XineBackEnd.pm
 lib/Video/PlaybackMachine/ScheduleEntry.pm
@@ -74,5 +74,5 @@ t/test_movies/square_logo.png
 t/test_movies/test_logo.png
 t/test_movies/test_logo_small.png
 t/test_movies/time_015.m2v
+t/test_movies/time_015.mp4
 t/time_manager.t
-test_movies/time_015.mp4

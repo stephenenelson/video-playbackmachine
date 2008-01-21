@@ -3,6 +3,7 @@ bRCS\b
 \bCVS\b
 ,v$
 \B\.svn\b
+svn-commit.*\.tmp
 
 # Makemaker generated files and dirs.
 ^MANIFEST\.
@@ -16,6 +17,7 @@ pm_to_blib
 \.old$
 (^|/)#.*#$
 (^|/)\.#
+core.*
 
 
 # Log directory
