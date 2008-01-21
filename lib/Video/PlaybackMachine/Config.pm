@@ -66,9 +66,6 @@ BEGIN {
 
 		$config->define( 'max_slides=i', { DEFAULT => 5 } );
 
-		$config->define( 'player_backend_class=s',
-			{ DEFAULT => 'XineBackEnd' } );
-			
 		$config->define( 'player_verbose=i', { DEFAULT => 0 } );
 		
 		$config->define( 'stderr_log=s' );
@@ -191,11 +188,6 @@ command-line parameters and returns it.
 
 =head2 OBJECT METHODS
 
-=head3 get_player_backend()
-
-Returns the Video::PlaybackMachine::PlayerBackEnd object defined in
-the configuration, or dies trying.
-
 =head3 init_logging()
 
 Initializes Log::Log4perl based on the 'log_config' parameter.
@@ -268,14 +260,6 @@ Integer.
 Maximum number of slides to play in a row.
 
 Default: 5
-
-=head3 player_backend_class
-
-String.
-
-Name of the PlayerBackEnd class to use during playback.
-
-Default: 'XineBackEnd'
 
 =head3 player_verbose
 
