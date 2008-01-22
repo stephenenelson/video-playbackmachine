@@ -8,7 +8,7 @@ WriteMakefile
 			    'POE' => 0,
 			    'Time::Duration' => 0,
 			    'Test::MockObject' => 0,
-			    'Video::Xine' => 0,
+			    'Video::Xine' => '0.14',
 			    'X11::FullScreen' => 0,
 			    'Image::Imlib2' => 0,
 			    'Log::Log4perl' => 0,
