@@ -24,8 +24,14 @@ BEGIN {
 		my $type = shift;
 		defined $config and return $config;
 
-		$config = $type->new( { GLOBAL => { EXPAND => EXPAND_ALL }  } );
-
+		$config = $type->new( { 
+				       CREATE => 1,
+				       GLOBAL => {
+						  EXPAND => EXPAND_ALL
+						 }
+				      }
+				    );
+		
 		$config->define(
 			'database',
 			{
@@ -75,7 +81,7 @@ BEGIN {
 		foreach my $config_file (@Config_Files) {
 			-e $config_file or next;
 			$config->file($config_file)
-			  or die "Couldn't load config file '@Config_Files': $!; stopped";
+			  or die "Couldn't load config file '$config_file': $!; stopped";
 		}
 		
 		$config->define( 'x_display=s', { DEFAULT => ':0.0' } );
