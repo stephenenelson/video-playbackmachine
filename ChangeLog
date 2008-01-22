@@ -11,7 +11,6 @@
 	* Eliminated AbstractListable superclass, since we currently have only one kind of Listable thing
 	* Inlined the X_DISPLAY constant in Player
 	* Eliminated Listable interface, since we have only one kind of Listable thing.
-	* 
 	
 
 2008-01-09  Stephen Nelson  <stephenenelson@mac.com>
