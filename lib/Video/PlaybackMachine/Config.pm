@@ -89,6 +89,8 @@ BEGIN {
 		$config->define( 'time_tick=i', { DEFAULT => 5 });
 
 		$config->define( 'daemonize!', { DEFAULT => 1 } );
+		
+		$config->define( 'font_dir', { DEFAULT => '/usr/share/fonts/bitstream-vera' } );
 
 		$config->getopt();
 
@@ -129,6 +131,7 @@ sub _producer_table {
 		next_sched => Video::PlaybackMachine::FillProducer::NextSchedule->new(
 			time      => 8,
 			font_size => 30,
+			font_path => [ $self->get('font_dir') ],
 		),
 
 		# Short film segment
