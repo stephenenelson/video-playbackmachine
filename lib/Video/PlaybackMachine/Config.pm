@@ -125,7 +125,10 @@ sub _producer_table {
 		),
 
 		up_next =>
-		  Video::PlaybackMachine::FillProducer::UpNext->new( time => 6, ),
+		  Video::PlaybackMachine::FillProducer::UpNext->new( 
+		  	time => 6,
+		  	font_path => [ $self->get('font_dir') ],
+		 ),
 
 		# Next 5 programs
 		next_sched => Video::PlaybackMachine::FillProducer::NextSchedule->new(
