@@ -46,6 +46,8 @@ BEGIN {
 
 		$config->define( 'music', { ARGS => '=s' } );
 
+		$config->define( 'font_dir', { ARGS => '=s' } );
+
 		$config->define( 'fill', { ARGS => '=s@' } );
 		
 		$config->define( 'restart_interval', { ARGS => '=i', DEFAULT => 3 * 60 * 60 } );
@@ -90,8 +92,6 @@ BEGIN {
 
 		$config->define( 'daemonize!', { DEFAULT => 1 } );
 		
-		$config->define( 'font_dir', { DEFAULT => '/usr/share/fonts/bitstream-vera' } );
-
 		$config->getopt();
 
 		return $config;
