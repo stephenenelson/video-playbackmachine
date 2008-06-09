@@ -54,6 +54,8 @@ BEGIN {
 
 		$config->define('logo=s');
 
+		$config->define('disclaimer', { ARGS => '=s' } );
+
 		$config->define('start=s');
 
 		$config->define(
@@ -112,7 +114,7 @@ sub _producer_table {
 	my $self = shift;
 	my ($table) = @_;
 
-	return +{
+	my $prod_table = {
 		station_id => Video::PlaybackMachine::FillProducer::StillFrame->new(
 			image => $self->logo(),
 			time  => 6
@@ -138,10 +140,19 @@ sub _producer_table {
 		),
 
 		# Short film segment
-		shorts => Video::PlaybackMachine::FillProducer::FillShort->new($table)
+		shorts => Video::PlaybackMachine::FillProducer::FillShort->new($table),
 
-	};
+      };
 
+
+	if ( $self->get('disclaimer') ) {
+	  $prod_table->{'disclaimer'} = Video::PlaybackMachine::FillProducer::StillFrame->new(
+		       image => $self->get('disclaimer'),
+		       time => 6
+          );
+        }
+
+	return $prod_table;
 }
 
 sub get_fill {
