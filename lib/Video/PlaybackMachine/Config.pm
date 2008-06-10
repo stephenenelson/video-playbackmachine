@@ -12,179 +12,178 @@ use FindBin '$Bin';
 use Log::Log4perl;
 
 our @Config_Files = (
-	"$Bin/../conf/playback_machine.conf",
-	"/etc/playback_machine/playback_machine.conf"
+    "$Bin/../conf/playback_machine.conf",
+    "/etc/playback_machine/playback_machine.conf"
 );
 
 BEGIN {
 
-	my $config;
+    my $config;
 
-	sub config {
-		my $type = shift;
-		defined $config and return $config;
+    sub config {
+        my $type = shift;
+        defined $config and return $config;
 
-		$config = $type->new( { 
-				       CREATE => 1,
-				       GLOBAL => {
-						  EXPAND => EXPAND_ALL
-						 }
-				      }
-				    );
-		
-		$config->define(
-			'database',
-			{
-				DEFAULT => 'playback_machine',
-				ARGS    => '=s'
-			}
-		);
+        $config = $type->new(
+            {
+                CREATE => 1,
+                GLOBAL => { EXPAND => EXPAND_ALL }
+            }
+        );
 
-		$config->define( 'schedule', { ARGS => '=s' } );
+        $config->define(
+            'database',
+            {
+                DEFAULT => 'playback_machine',
+                ARGS    => '=s'
+            }
+        );
 
-		$config->define( 'stills', { ARGS => '=s' } );
+        $config->define( 'schedule', { ARGS => '=s' } );
 
-		$config->define( 'music', { ARGS => '=s' } );
+        $config->define( 'stills', { ARGS => '=s' } );
 
-		$config->define( 'font_dir', { ARGS => '=s' } );
+        $config->define( 'music', { ARGS => '=s' } );
 
-		$config->define( 'fill', { ARGS => '=s@' } );
-		
-		$config->define( 'restart_interval', { ARGS => '=i', DEFAULT => 3 * 60 * 60 } );
+        $config->define( 'font_dir', { ARGS => '=s' } );
 
-		$config->define('logo=s');
+        $config->define( 'fill', { ARGS => '=s@' } );
 
-		$config->define('disclaimer', { ARGS => '=s' } );
+        $config->define( 'restart_interval',
+            { ARGS => '=i', DEFAULT => 3 * 60 * 60 } );
 
-		$config->define('start=s');
+        $config->define('logo=s');
 
-		$config->define(
-			'offset',
-			{
-				ARGS    => '=i',
-				DEFAULT => 0
-			}
-		);
+        $config->define( 'disclaimer', { ARGS => '=s' } );
 
-		$config->define(
-			'skip_tolerance',
-			{
-				ARGS    => '=i',
-				DEFAULT => 15
-			}
-		);
+        $config->define('start=s');
 
-		$config->define( 'max_slides=i', { DEFAULT => 5 } );
+        $config->define(
+            'offset',
+            {
+                ARGS    => '=i',
+                DEFAULT => 0
+            }
+        );
 
-		$config->define( 'player_verbose=i', { DEFAULT => 0 } );
-		
-		$config->define( 'stderr_log=s' );
+        $config->define(
+            'skip_tolerance',
+            {
+                ARGS    => '=i',
+                DEFAULT => 15
+            }
+        );
 
-		$config->define( 'log_config=s' );
+        $config->define( 'max_slides=i', { DEFAULT => 5 } );
 
-		foreach my $config_file (@Config_Files) {
-			-e $config_file or next;
-			$config->file($config_file)
-			  or die "Couldn't load config file '$config_file': $!; stopped";
-		}
-		
-		$config->define( 'x_display=s', { DEFAULT => ':0.0' } );
+        $config->define( 'player_verbose=i', { DEFAULT => 0 } );
 
-		$config->define( 'time_tick=i', { DEFAULT => 5 });
+        $config->define('stderr_log=s');
 
-		$config->define( 'daemonize!', { DEFAULT => 1 } );
-		
-		$config->getopt();
+        $config->define('log_config=s');
 
-		return $config;
-	}
+        foreach my $config_file (@Config_Files) {
+            -e $config_file or next;
+            $config->file($config_file)
+              or die "Couldn't load config file '$config_file': $!; stopped";
+        }
+
+        $config->define( 'x_display=s', { DEFAULT => ':0.0' } );
+
+        $config->define( 'time_tick=i', { DEFAULT => 5 } );
+
+        $config->define( 'daemonize!', { DEFAULT => 1 } );
+
+        $config->getopt();
+
+        return $config;
+    }
 
 }
 
 sub init_logging {
-  my $type = shift;
+    my $type = shift;
 
-  my $config = $type->config();
+    my $config = $type->config();
 
-  Log::Log4perl::init_once( \ ( $config->log_config() ) );
+    Log::Log4perl::init_once( \( $config->log_config() ) );
 
 }
 
 sub _producer_table {
-	my $self = shift;
-	my ($table) = @_;
+    my $self = shift;
+    my ($table) = @_;
 
-	my $prod_table = {
-		station_id => Video::PlaybackMachine::FillProducer::StillFrame->new(
-			image => $self->logo(),
-			time  => 6
-		),
+    my $prod_table = {
+        station_id => Video::PlaybackMachine::FillProducer::StillFrame->new(
+            image => $self->logo(),
+            time  => 6
+        ),
 
-		slideshow => Video::PlaybackMachine::FillProducer::SlideShow->new(
-			directory       => $self->get('stills'),
-			music_directory => $self->get('music'),
-			time            => 10,
-		),
+        slideshow => Video::PlaybackMachine::FillProducer::SlideShow->new(
+            directory       => $self->get('stills'),
+            music_directory => $self->get('music'),
+            time            => 10,
+        ),
 
-		up_next =>
-		  Video::PlaybackMachine::FillProducer::UpNext->new( 
-		  	time => 6,
-		  	font_path => [ $self->get('font_dir') ],
-		 ),
+        up_next => Video::PlaybackMachine::FillProducer::UpNext->new(
+            time      => 6,
+            font_path => [ $self->get('font_dir') ],
+        ),
 
-		# Next 5 programs
-		next_sched => Video::PlaybackMachine::FillProducer::NextSchedule->new(
-			time      => 8,
-			font_size => 30,
-			font_path => [ $self->get('font_dir') ],
-		),
+        # Next 5 programs
+        next_sched => Video::PlaybackMachine::FillProducer::NextSchedule->new(
+            time      => 8,
+            font_size => 30,
+            font_path => [ $self->get('font_dir') ],
+        ),
 
-		# Short film segment
-		shorts => Video::PlaybackMachine::FillProducer::FillShort->new($table),
+        # Short film segment
+        shorts => Video::PlaybackMachine::FillProducer::FillShort->new($table),
 
-      };
+    };
 
-
-	if ( $self->get('disclaimer') ) {
-	  $prod_table->{'disclaimer'} = Video::PlaybackMachine::FillProducer::StillFrame->new(
-		       image => $self->get('disclaimer'),
-		       time => 6
+    if ( $self->get('disclaimer') ) {
+        $prod_table->{'disclaimer'} =
+          Video::PlaybackMachine::FillProducer::StillFrame->new(
+            image => $self->get('disclaimer'),
+            time  => 6
           );
-        }
+    }
 
-	return $prod_table;
+    return $prod_table;
 }
 
 sub get_fill {
-	my $self = shift;
-	my ($table) = @_;
+    my $self = shift;
+    my ($table) = @_;
 
-	my $pt = $self->_producer_table($table);
+    my $pt = $self->_producer_table($table);
 
-	my @fill_segs = ();
-	my $order_idx = 1;
-	foreach ( @{ $self->fill() } ) {
-		my ( $name, $priority ) = split( /\t+/, $_, 2 );
-		my $producer = $pt->{$name};
-		unless ( defined $producer ) {
-			my $logger =
-			  Log::Log4perl->get_logger('Video.PlaybackMachine.Config');
-			$logger->warn("No fill producer found named '$name'");
-			next;
-		}
-		my $segment = Video::PlaybackMachine::FillSegment->new(
-			name           => $name,
-			sequence_order => $order_idx++,
-			priority_order => $priority,
-			producer       => $producer
-		);
-		push( @fill_segs, $segment );
+    my @fill_segs = ();
+    my $order_idx = 1;
+    foreach ( @{ $self->fill() } ) {
+        my ( $name, $priority ) = split( /\t+/, $_, 2 );
+        my $producer = $pt->{$name};
+        unless ( defined $producer ) {
+            my $logger =
+              Log::Log4perl->get_logger('Video.PlaybackMachine.Config');
+            $logger->warn("No fill producer found named '$name'");
+            next;
+        }
+        my $segment = Video::PlaybackMachine::FillSegment->new(
+            name           => $name,
+            sequence_order => $order_idx++,
+            priority_order => $priority,
+            producer       => $producer
+        );
+        push( @fill_segs, $segment );
 
-	}
+    }
 
-	my $filler = Video::PlaybackMachine::Filler->new( segments => \@fill_segs );
+    my $filler = Video::PlaybackMachine::Filler->new( segments => \@fill_segs );
 
-	return $filler;
+    return $filler;
 }
 
 1;
