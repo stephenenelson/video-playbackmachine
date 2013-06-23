@@ -4,6 +4,8 @@ bRCS\b
 ,v$
 \B\.svn\b
 svn-commit.*\.tmp
+\.git
+\.DS_Store
 
 # Makemaker generated files and dirs.
 ^MANIFEST\.
