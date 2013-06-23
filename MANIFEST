@@ -36,8 +36,6 @@ lib/Video/PlaybackMachine/MemoryLogger.pm
 lib/Video/PlaybackMachine/Movie.pm
 lib/Video/PlaybackMachine/Player.pm
 lib/Video/PlaybackMachine/Player/EventWheel.pm
-lib/Video/PlaybackMachine/PlayerBackEnd.pm
-lib/Video/PlaybackMachine/PlayerBackEnd/XineBackEnd.pm
 lib/Video/PlaybackMachine/ScheduleEntry.pm
 lib/Video/PlaybackMachine/Scheduler.pm
 lib/Video/PlaybackMachine/ScheduleTable.pm
