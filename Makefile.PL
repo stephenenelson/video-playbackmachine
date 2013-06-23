@@ -5,6 +5,9 @@ WriteMakefile
    NAME		=> 'Video::PlaybackMachine',
    VERSION_FROM	=> 'lib/Video/PlaybackMachine.pm',
    PREREQ_PM		=> {
+   				'DBI' => 0,
+   				'DBD::Pg' => 0,
+   				'Date::Manip' => 0,
 			    'POE' => 0,
 			    'Time::Duration' => 0,
 			    'Test::MockObject' => 0,

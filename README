@@ -40,6 +40,8 @@ Plus the CPAN modules:
  Test::MockObject
  Log::Log4perl
  Image::Imlib2
+ DBI
+ Date::Manip
  DBD::Pg
 
 COPYRIGHT AND LICENCE
