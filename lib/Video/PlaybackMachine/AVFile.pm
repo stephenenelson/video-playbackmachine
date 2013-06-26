@@ -7,47 +7,38 @@ package Video::PlaybackMachine::AVFile;
 ####
 ####
 
-use strict;
-use warnings;
+use Moose;
 
-############################# Class Constants #############################
+has 'file' => (
+	'is' => 'ro',
+	'isa' => 'Str',
+	'required' => 1,
+	'reader' => 'get_file'
+);
 
-############################## Class Methods ##############################
+has 'length' => (
+	'is' => 'ro',
+	'isa' => 'Int',
+	'required' => 1,
+	'reader' => 'get_length'
+);
 
-##
-## new()
-##
-## Arguments:
-##   FILE: string -- Path to a file
-##   LENGTH: integer -- Play length of the file in seconds.
-##
-sub new {
-  my $type = shift;
-  my ($file, $length) = @_;
+around 'BUILDARGS' => sub {
+	my ($orig) = shift;
+	my ($class) = shift;
+	
+	if (@_ == 2 && ! ref $_[0]) {
+		my ($file, $length) = @_;
+		return $class->$orig('file' => $file, 'length' => $length);
+	}
+	else {
+		return $class->$orig(@_);
+	}
+};
 
-  my $self = {
-	      file => $file, 
-	      length => $length
-	     };
-  bless $self, $type;
-}
+__PACKAGE__->meta()->make_immutable();
 
-
-############################# Object Methods ##############################
-
-##
-## get_length()
-##
-## Returns the duration of the AV file in seconds.
-##
-sub get_length { return $_[0]->{length}; }
-
-##
-## get_file()
-##
-## Returns the filename.
-##
-sub get_file { return $_[0]->{file}; }
+no Moose;
 
 1;
 
