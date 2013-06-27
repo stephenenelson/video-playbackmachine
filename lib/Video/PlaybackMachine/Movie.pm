@@ -102,3 +102,54 @@ __PACKAGE__->meta()->make_immutable();
 no Moose;
 
 1;
+
+__END__
+
+=head1 NAME
+
+Video::PlaybackMachine::Movie - A thing that we can play
+
+=head1 SYNOPSIS
+
+  use Video::PlaybackMachine::Movie;
+
+  my $avfile = Video::PlaybackMachine::Movie->new(
+  	title => 'My Awesome Movie',
+  	description => 'This is my awesome movie',
+  	av_files => [ $av_file_1, $av_file_2 ]
+  );
+
+  my $length = $avfile->get_length();
+
+=head1 DESCRIPTION
+
+Represents a single entity, which may or may not have many files, which share a single title and description, and that the Playback Machine should play one after the other.
+
+The original rationale for this class came from the fact that one might need to split up the files for a movie for length reasons.
+
+=head1 ATTRIBUTES 
+
+=head3 title
+
+String. The title of the movie.
+
+=head3 description
+
+String. A description of the movie. This is used by the Scheduler to make "Up Next" cards.
+
+=head3 av_files
+
+Arrayref of Video::PlaybackMachine::AVFile objects.
+
+=head2 OBJECT METHODS
+
+=head3 get_length()
+
+Returns the combined duration of all component files of the movie. 
+
+=head3 get_av_files()
+
+Returns all the AVFile objects.
+
+=cut
+
