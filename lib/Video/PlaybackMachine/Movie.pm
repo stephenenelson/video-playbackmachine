@@ -8,47 +8,34 @@ package Video::PlaybackMachine::Movie;
 #### Represents a movie on the schedule.
 ####
 
-use strict;
-use warnings;
-use diagnostics;
+use Moose;
 
 use POE;
 use Carp;
 
-############################# Class Constants #############################
+has 'title' => (
+    'is'       => 'ro',
+    'isa'      => 'Str',
+    'required' => 1,
+    'reader'   => 'get_title',
+);
 
-##
-## new()
-##
-## Arguments: hash
-##   title: string
-##   description: string
-##   av_files: arrayref -- list of Video::PlaybackMachine::AVFile objects
-##
-sub new {
-  my $type = shift;
-  my %in = @_;
+has 'description' => (
+    'is'       => 'ro',
+    'isa'      => 'Str',
+    'required' => 1,
+    'reader'   => 'get_description',
+);
 
-  unless (ref $in{'av_files'} && ref $in{'av_files'} eq 'ARRAY') {
-  	croak("${type}::new(): Argument '$in{av_files}' for 'av_files' must be an array reference; stopped");
-  }
-  @{ $in{av_files} } > 0
-    or confess("${type}::new(): Must have at least one AV::File object");
-  foreach (@{ $in{av_files} } ){
-    ( ref $_ && ref $_ eq 'Video::PlaybackMachine::AVFile' )
-      or croak("$type::new(): Argument '$_' is not an AVFile object");
-  }
-
-  my $self = {
-	      title => $in{title},
-	      description => $in{description},
-	      av_files => [ @{ $in{av_files} } ]
-	     };
-
-  bless $self, $type;
-
-  return $self;
-}
+has 'av_files' => (
+    'is'       => 'rw',
+    'traits'   => ['Array'],
+    'isa'      => 'ArrayRef[Video::PlaybackMachine::AVFile]',
+    'required' => 1,
+    'handles'  => {
+        'get_av_files' => 'elements'
+    },
+);
 
 ############################## Object Methods ##############################
 
@@ -59,13 +46,15 @@ sub new {
 ## set length return 0.
 ##
 sub get_length {
-  my $self = shift;
-  
-  my $length = 0;
-  foreach ( @{ $self->{av_files} } ) {
-    $length += $_->get_length();
-  }
-  return $length;
+    my $self = shift;
+
+    my $length = 0;
+
+    foreach my $av_file ( $self->get_av_files() ) {
+        $length += $av_file->length();
+    }
+
+    return $length;
 }
 
 ##
@@ -76,65 +65,40 @@ sub get_length {
 ## prepared and should be scheduled, false otherwise.
 ##
 sub prepare {
-  my $self = shift;
+    my $self = shift;
 
-  foreach ( $self->get_av_files() ) {
-    -e $_->get_file() or do {
-      warn "Attempt to use nonexistent file '@{[ $_->get_file() ]}'\n";
-      return;
-    };
-  }
+    foreach ( $self->get_av_files() ) {
+        -e $_->get_file() or do {
+            warn "Attempt to use nonexistent file '@{[ $_->get_file() ]}'\n";
+            return;
+        };
+    }
 
-  return 1;
+    return 1;
 
 }
 
 ##
 ## play()
-## 
+##
 ## Arguments:
 ##   OFFSET: integer -- amount of time to skip before beginning.
 ##
 ## Issues whatever command is necessary to play this item.
 ##
 sub play {
-  my $self = shift;
-  my ($offset) = @_;
+    my $self = shift;
+    my ($offset) = @_;
 
-  my $session = $poe_kernel->get_active_session();
+    my $session = $poe_kernel->get_active_session();
 
-  $poe_kernel->post('Player', 'play', $session->postback('finished', $self, time()), $offset, map { $_->get_file() } $self->get_av_files());
+    $poe_kernel->post( 'Player', 'play',
+        $session->postback( 'finished', $self, time() ),
+        $offset, map { $_->get_file() } $self->get_av_files() );
 }
 
-##
-## get_av_files()
-##
-## Returns a list of the AV files associated with this movie.
-##
-sub get_av_files {
-  my $self = shift;
+__PACKAGE__->meta()->make_immutable();
 
-  return @{ $self->{av_files} };
-}
-
-##
-## get_title()
-##
-## Returns the title of the item.
-##
-sub get_title { 
-  return $_[0]->{'title'};
-}
-
-##
-## get_description()
-##
-## Returns a description of the item.
-##
-sub get_description { 
-  return $_[0]->{'description'};
-}
-
-
+no Moose;
 
 1;
