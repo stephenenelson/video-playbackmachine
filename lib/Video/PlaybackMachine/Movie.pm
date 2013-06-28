@@ -51,7 +51,7 @@ sub get_length {
     my $length = 0;
 
     foreach my $av_file ( $self->get_av_files() ) {
-        $length += $av_file->length();
+        $length += $av_file->get_length();
     }
 
     return $length;
