@@ -6,49 +6,45 @@ package Video::PlaybackMachine::ScheduleEntry;
 #### Represents a single listing in the schedule.
 ####
 
-use strict;
-use warnings;
-use diagnostics;
+use Moose;
 use Carp;
+
+has 'start_time' => (
+	'is' => 'ro',
+	'isa' => 'Int',
+	'reader' => 'get_start_time',
+	'required' => 1,
+);
+
+has 'listing' => (
+	'is' => 'ro',
+	'isa' => 'Video::PlaybackMachine::Movie',
+	'reader' => 'get_listing',
+	'handles' => [ 'get_title' ],
+	'required' => 1,
+);
+
+around 'BUILDARGS' => sub {
+	my $orig = shift;
+	my $class = shift;
+
+	if ( @_ == 2 ) {
+		return $class->$orig( 'start_time' => $_[0],
+					    'listing' => $_[1]
+		);
+	}
+	else {
+		return $class->$orig(@_);
+	}
+};
 
 use overload '""' => sub { $_[0]->as_string() };
 
 ########################### Class Methods #################################
 
-##
-## new()
-##
-##  Arguments:
-##   START_TIME: scalar -- Unix raw time that the entry will start
-##   LISTING: Video::PlaybackMachine::Movie -- Listing for content appearing here
-##
-sub new {
-  my $type = shift;
-  my ($time, $listing) = @_;
-  defined($time) && defined($listing) or croak("Usage: $type->new(TIME, LISTING)");
-  $time =~ m{^\d+$} or croak("TIME '$time' must be an integer");
-
-  my $self = {
-	      Start_Time => $time,
-	      Listing => $listing
-	     };
-
-  bless $self, $type;
-}
 
 ########################## Object Methods #################################
 
-##
-## get_start_time()
-##
-## Returns the time that the entry should be scheduled to begin.
-##
-sub get_start_time {
-  my $self = shift;
-
-  return $self->{Start_Time};
-
-}
 
 ##
 ## get_finish_time()
@@ -58,26 +54,15 @@ sub get_start_time {
 sub get_finish_time {
   my $self = shift;
 
-  return $self->{Start_Time} + $self->get_listing()->get_length();
-}
-
-##
-## get_listing()
-##
-## Returns the listing that will take place at the given time.
-##
-sub get_listing {
-  my $self = shift;
-
-  return $self->{Listing};
-}
-
-sub get_title {
-  return $_[0]->{'Listing'}->get_title();
+  return $self->get_start_time() + $self->get_listing()->get_length();
 }
 
 sub as_string {
     return $_[0]->get_title();
 }
+
+__PACKAGE__->meta()->make_immutable();
+
+no Moose;
 
 1;
