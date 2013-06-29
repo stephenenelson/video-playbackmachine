@@ -71,7 +71,7 @@ __PACKAGE__->set_primary_key("title");
 
 =head1 RELATIONS
 
-=head2 title
+=head2 movie
 
 Type: belongs_to
 
@@ -80,15 +80,15 @@ Related object: L<Video::PlaybackMachine::Schema::Result::Movie>
 =cut
 
 __PACKAGE__->belongs_to(
-  "title",
+  "movie",
   "Video::PlaybackMachine::Schema::Result::Movie",
   { title => "title" },
   { is_deferrable => 0, on_delete => "CASCADE,", on_update => "CASCADE," },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-28 23:00:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qIKRWMXm8fgCiJ2ofHb+YQ
+# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-29 08:39:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7lYYloM3tFXaWkA0MA4/Qw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

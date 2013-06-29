@@ -46,24 +46,24 @@ __PACKAGE__->set_primary_key("name");
 
 =head1 RELATIONS
 
-=head2 content_schedules
+=head2 schedule_entries
 
 Type: has_many
 
-Related object: L<Video::PlaybackMachine::Schema::Result::ContentSchedule>
+Related object: L<Video::PlaybackMachine::Schema::Result::ScheduleEntry>
 
 =cut
 
 __PACKAGE__->has_many(
-  "content_schedules",
-  "Video::PlaybackMachine::Schema::Result::ContentSchedule",
+  "schedule_entries",
+  "Video::PlaybackMachine::Schema::Result::ScheduleEntry",
   { "foreign.schedule" => "self.name" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-28 23:00:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kJaMPvA2sbvDhlmg22M/kA
+# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-29 08:39:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i73t0hc/mu2U3ZOJDUvCqw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

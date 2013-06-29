@@ -74,7 +74,7 @@ __PACKAGE__->set_primary_key("file", "sequence_no");
 
 =head1 RELATIONS
 
-=head2 title
+=head2 movie
 
 Type: belongs_to
 
@@ -83,7 +83,7 @@ Related object: L<Video::PlaybackMachine::Schema::Result::Movie>
 =cut
 
 __PACKAGE__->belongs_to(
-  "title",
+  "movie",
   "Video::PlaybackMachine::Schema::Result::Movie",
   { title => "title" },
   {
@@ -95,8 +95,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-28 23:00:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:G3sebjUmAWBIudV2cBjVaQ
+# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-29 08:39:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SkgeU/85DSJL0oSsLgxqfg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

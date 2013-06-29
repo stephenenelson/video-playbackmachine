@@ -1,12 +1,12 @@
 use utf8;
-package Video::PlaybackMachine::Schema::Result::ContentSchedule;
+package Video::PlaybackMachine::Schema::Result::ScheduleEntry;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Video::PlaybackMachine::Schema::Result::ContentSchedule
+Video::PlaybackMachine::Schema::Result::ScheduleEntry
 
 =cut
 
@@ -112,6 +112,21 @@ __PACKAGE__->add_unique_constraint(
 
 =head1 RELATIONS
 
+=head2 movie
+
+Type: belongs_to
+
+Related object: L<Video::PlaybackMachine::Schema::Result::Movie>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "movie",
+  "Video::PlaybackMachine::Schema::Result::Movie",
+  { title => "title" },
+  { is_deferrable => 0, on_delete => "CASCADE,", on_update => "CASCADE," },
+);
+
 =head2 schedule
 
 Type: belongs_to
@@ -132,24 +147,9 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 title
 
-Type: belongs_to
-
-Related object: L<Video::PlaybackMachine::Schema::Result::Movie>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "title",
-  "Video::PlaybackMachine::Schema::Result::Movie",
-  { title => "title" },
-  { is_deferrable => 0, on_delete => "CASCADE,", on_update => "CASCADE," },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-28 23:00:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cde3C9Wf2YIJdiQw8lA4Wg
+# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-29 08:39:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D2ohRKq2labma9K7hvqULA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
