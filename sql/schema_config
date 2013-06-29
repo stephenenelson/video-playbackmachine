@@ -1,0 +1,13 @@
+schema_class Video::PlaybackMachine::Schema
+
+<connect_info>
+	dsn dbi:Pg:database=playback_machine
+</connect_info>
+
+<loader_options>
+	dump_directory ./lib
+	exclude 'qr/fills movies schedule_times schedule_times_raw/'
+	moniker_map '{"av_files" => "Movie", "av_file_component" => "AVFile"}'
+</loader_options>
+
+# rm -rf ./lib/Video/PlaybackMachine/Schema/; dbicdump -o dump_directory=./lib -o exclude='qr/fills|movies|schedule_times|schedule_times_raw/' -o moniker_map='{"av_files" => "Movie", "av_file_component" => "AVFile"}' Video::PlaybackMachine::Schema dbi:Pg:database=playback_machine
