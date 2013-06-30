@@ -54,27 +54,24 @@ sub getDbh { return Video::PlaybackMachine::DB->db(); }
 sub get_entries_between
 {
 	my $self = shift;
-	my ($begin_time, $end_time) = @_;	
+	my ($begin_time, $end_time) = @_;
 	
-	my $sth = $self->getDbh->prepare(
-q/
-	SELECT title, start_time
-	FROM schedule_times_raw
-	WHERE (start_time > ? OR stop_time > ?) AND start_time < ? AND schedule = ?
-	ORDER BY start_time
-/
+	my $schema = Video::PlaybackMachine::DB->schema();
+	
+	my $entries_rs = $schema->resultset('ScheduleEntry')->search(
+		{
+			[ { 'start_time' => { '>', $begin_time } },
+			  { 'stop_time' => { '>', $begin_time } },
+			],
+			'start_time' => {'<', $end_time },
+			'schedule' => $self->{'schedule_name'}
+		},
+		{
+			'order_by' => 'start_time'
+		}
 	);
 	
-	$sth->execute($begin_time, $begin_time, $end_time, $self->{'schedule_name'})
-		or $self->{'logger'}->logdie($DBI::errstr);
-
-	my @entries = ();
-	
-	while (my ($title, $start_time, $description) = $sth->fetchrow_array() ) {
-		push(@entries, $self->_entry_for($title, $start_time, $description));	
-	}
-	
-	return @entries;
+	return $entries_rs->all();
 	
 }
 
