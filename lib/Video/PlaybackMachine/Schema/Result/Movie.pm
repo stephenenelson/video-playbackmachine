@@ -76,6 +76,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 content_schedules
+
+Type: has_many
+
+Related object: L<Video::PlaybackMachine::Schema::Result::ContentSchedule>
+
+=cut
+
+__PACKAGE__->has_many(
+  "content_schedules",
+  "Video::PlaybackMachine::Schema::Result::ContentSchedule",
+  { "foreign.title" => "self.title" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 fill_shorts
 
 Type: has_many
@@ -91,24 +106,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 schedule_entries
 
-Type: has_many
-
-Related object: L<Video::PlaybackMachine::Schema::Result::ScheduleEntry>
-
-=cut
-
-__PACKAGE__->has_many(
-  "schedule_entries",
-  "Video::PlaybackMachine::Schema::Result::ScheduleEntry",
-  { "foreign.title" => "self.title" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-29 08:39:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:de1aLUhImpM37hFGPathrQ
+# Created by DBIx::Class::Schema::Loader v0.07035 @ 2013-06-29 09:04:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/JD/wTJ6tgINjHmshO0ITA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
