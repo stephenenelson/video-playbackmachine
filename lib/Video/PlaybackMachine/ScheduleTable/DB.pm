@@ -91,33 +91,25 @@ sub get_entries_after {
       or $num_entries = 1;
 
     # Get next content_schedule entry
-
-    my $sth = $self->getDbh()->prepare(
-        q/
-  	SELECT title, start_time
-	FROM schedule_times_raw
-	WHERE start_time > ? AND schedule = ?
-        ORDER BY start_time
-	LIMIT ?
- /
-    );
-    $sth->execute( $time, $self->{'schedule_name'}, $num_entries )
-      or $self->{'logger'}->logdie($DBI::errstr);
-
-    my @entries = ();
-
-    while ( my ( $title, $start_time, $description ) = $sth->fetchrow_array() )
-    {
-        push( @entries,
-            $self->_entry_for( $title, $start_time, $description ) );
-    }
+    
+ 	my $schema = Video::PlaybackMachine::DB->schema();   
+ 
+	my $entries_rs = $schema->resultset('ScheduleEntry')->search(
+		{
+			'start_time' => { '>', $time },
+			'schedule'   => $schedule,
+		},
+		{
+			'limit' => $num_entries,
+			'order_by' => 'start_time'
+		}
+	);
 
     if (wantarray) {
-        return @entries;
+        return $entries_rs->all();
     }
     else {
-        return $entries[0] if $num_entries == 1;
-        return \@entries;
+        return $entries_rs->first();
     }
 }
 
