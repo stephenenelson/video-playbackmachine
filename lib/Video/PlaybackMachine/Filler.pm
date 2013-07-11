@@ -34,10 +34,10 @@ sub new {
   my $type = shift;
   my (%in) = @_;
 
-  (ref $in{segments} eq 'ARRAY')
+  (ref $in{'segments'} eq 'ARRAY')
     or croak($type, "::new() called improperly");
 
-  foreach my $segment (@{ $in{segments} }) {
+  foreach my $segment (@{ $in{'segments'} }) {
     ref $segment eq 'Video::PlaybackMachine::FillSegment'
       or croak($type, "::new: option 'segments' contains '$segment')");
   }
@@ -81,10 +81,10 @@ sub spawn {
 sub start_fill {
 
   # Initialize a TimeManager with our FillSegments
-  $_[HEAP]{time_manager} = Video::PlaybackMachine::TimeManager->new( @{ $_[OBJECT]{segments} } );
+  $_[HEAP]{'time_manager'} = Video::PlaybackMachine::TimeManager->new( @{ $_[OBJECT]{'segments'} } );
 
   # Store the current schedule in the heap
-  $_[HEAP]{view} = $_[ARG0]
+  $_[HEAP]{'view'} = $_[ARG0]
         or $_[OBJECT]->{'logger'}->logconfess('ARG0 required');
 
   $_[OBJECT]->{'logger'}->debug("Filling, ttn=", duration($_[ARG0]->get_time_to_next()),"\n");
@@ -110,8 +110,8 @@ sub stop {
 ##
 sub fill_done {
   $_[KERNEL]->alarm_set('next_fill');
-  delete $_[HEAP]->{time_manager};
-  delete $_[HEAP]->{view};
+  delete $_[HEAP]->{'time_manager'};
+  delete $_[HEAP]->{'view'};
   $_[KERNEL]->post('Scheduler', 'wait_for_scheduled');
 }
 
@@ -123,11 +123,11 @@ sub fill_done {
 ##
 sub next_fill {
 
-  $_[HEAP]{view} 
+  $_[HEAP]{'view'} 
     or $_[OBJECT]{'logger'}->logconfess("Somehow called next_fill on us without calling start_fill");
 
-  my ($segment, $time) = $_[HEAP]{time_manager}->get_segment(
-							     $_[HEAP]{view}->get_time_to_next(time())
+  my ($segment, $time) = $_[HEAP]{'time_manager'}->get_segment(
+							     $_[HEAP]{'view'}->get_time_to_next(time())
 							    )
     or do {
       $_[KERNEL]->yield('fill_done');
