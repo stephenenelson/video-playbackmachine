@@ -440,6 +440,7 @@ sub play_scheduled {
 
     # Add the currently-scheduled item to the waiting list
     # This discards any existing $seek
+    # TODO Do we actually do anything with the waitlist?
     push(@{ $self->{waitlist} }, $movie);
 
     return;
