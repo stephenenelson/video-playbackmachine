@@ -13,7 +13,7 @@ __PACKAGE__->add_columns(
   "stop_time"        => { data_type => "integer", is_nullable => 0 }
 );
 
-__PACKAGE__->set_primary_key('schedule_entry_id');
+__PACKAGE__->set_primary_key('schedule_entry_end_id');
 
 __PACKAGE__->belongs_to(
   "schedule_entry",
