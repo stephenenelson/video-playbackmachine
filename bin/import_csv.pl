@@ -10,6 +10,9 @@ use Text::CSV;
 use DateTime;
 use DateTime::Format::Strptime;
 use DateTime::TimeZone::UTC;
+use Video::Xine;
+use Video::Xine::Stream;
+use POSIX 'ceil';
 
 my ($schedule_name, $csv_file, $db_file) = @ARGV;
 
@@ -44,6 +47,14 @@ MAIN: {
 	my $header = $csv->getline( $fh );
 	
 	my $entry_rs = $schema->resultset('ScheduleEntry');
+	my $movie_info_rs = $schema->resultset('MovieInfo');
+	my $entry_end_rs = $schema->resultset('ScheduleEntryEnd');
+	
+	my $xine = Video::Xine->new();
+	
+    my $vo = Video::Xine::Driver::Video->new($xine, 'none');
+    my $ao = Video::Xine::Driver::Audio->new($xine, 'none');
+    my $stream = $xine->stream_new($ao, $vo);
 	
 	while ( my $row = $csv->getline( $fh ) ) {
 		my ($start_str, $mrl) = @$row;
@@ -52,9 +63,23 @@ MAIN: {
 				
 		my $start_epoch = $strp_epoch->format_datetime( $start_dt );
 		
-		$entry_rs->create({ 'schedule_id' => $schedule->schedule_id, 
+		$stream->open($mrl) or die "Couldn't open '$mrl'";
+		my (undef, undef, $length_millis) = $stream->get_pos_length();
+		$stream->close();
+		
+		my $length_secs = ceil( $length_millis / 1000 );
+		
+		my $entry = $entry_rs->create({ 'schedule_id' => $schedule->schedule_id, 
 							'mrl' => $mrl,
 							'start_time' => $start_epoch
+							});
+		
+		$movie_info_rs->create({'mrl' => $mrl,
+								'duration' => $length_secs
+							   });
+							   
+		$entry_end_rs->create({ 'schedule_entry_id' => $entry->schedule_entry_id(),
+								'stop_time' => $start_epoch + $length_secs
 							});
 	}
 }
