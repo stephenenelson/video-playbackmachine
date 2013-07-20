@@ -77,7 +77,6 @@ sub new {
         schedule_table      => $in{schedule_table},
         player => $in{player} || Video::PlaybackMachine::Player->new(),
         filler => $in{filler} || Video::PlaybackMachine::Filler->new(),
-        waitlist        => [],
         mode            => START_MODE,
         offset          => $in{offset},
         minimum_fill    => $Minimum_Fill,
@@ -171,26 +170,6 @@ sub get_time_to_next {
     else {
         return $next->start_time() - $self->time();
     }
-}
-
-##
-## Returns the amount of time required to skip to play
-## the given movie before the next scheduled entry.
-##
-sub time_skip {
-    my $self  = shift;
-    my $movie = shift;
-    my $time  = $self->real_to_schedule(@_);
-
-    my $diff = $self->get_time_to_next(@_);
-
-    if ( $movie->get_length() > $diff ) {
-        return $movie->get_length() - $diff;
-    }
-    else {
-        return 0;
-    }
-
 }
 
 ############################# Session Methods #############################
@@ -306,74 +285,38 @@ sub finished {
     $kernel->post( 'Logger', 'log_played_movie', $request->[0], $request->[1],
         time(), $response->[0] );
 
-    # TODO this is not a feature we use. Remove it and its little dog, too.
-    # If there's something waiting to be played
-    my $waiting_movie;
-    if ( $waiting_movie = shift @{ $self->{waitlist} } ) {
+	# If there's something else scheduled
+	if ( defined $self->get_next_entry($now) ) {
 
-        # If there's time enough to play it
-        if ( $self->time_skip( $waiting_movie, $now ) <=
-            $self->{skip_tolerance} )
-        {
+		# If there's enough time to start filling
+		if ( $self->get_time_to_next($now) > $self->{minimum_fill} ) {
 
-            # Play it, skipping as necessary
-            $kernel->yield( 'play_scheduled', $waiting_movie,
-                $self->time_skip($waiting_movie) );
+			# Fill until next scheduled entry
+			$kernel->yield('wait_for_scheduled');
 
-        }    # End if time enough
+		}    # End if enough time
 
-        # Otherwise we didn't have time to play it
-        else {
+		# Otherwise, go into idle mode till next
+		else {
 
-            # Log that we had to skip something
-            $kernel->post( 'Logger', 'log_skipped_movie', $waiting_movie );
+			$self->{'logger'}->debug( "Not filling: "
+				  . $self->get_time_to_next($now)
+				  . " too short for fill (minimum $self->{'minimum_fill'})\n"
+			);
 
-            # Schedule the next movie
-            $kernel->yield('schedule_next');
+			$self->{mode} = IDLE_MODE;
 
-            # Wait for the next movie
-            $kernel->yield('wait_for_scheduled');
+		}
 
-        }    # End no time
+	}    # End if something else scheduled
 
-    }    # End if something waiting
+	# Otherwise, nothing scheduled; shut down.
+	else {
 
-    # Otherwise, nothing scheduled to play right now
-    else {
+		$kernel->yield('shutdown');
 
-        # If there's something else scheduled
-        if ( defined $self->get_next_entry($now) ) {
+	}
 
-            # If there's enough time to start filling
-            if ( $self->get_time_to_next($now) > $self->{minimum_fill} ) {
-
-                # Fill until next scheduled entry
-                $kernel->yield('wait_for_scheduled');
-
-            }    # End if enough time
-
-            # Otherwise, go into idle mode till next
-            else {
-
-                $self->{'logger'}->debug( "Not filling: "
-                      . $self->get_time_to_next($now)
-                      . " too short for fill (minimum $self->{'minimum_fill'})\n"
-                );
-
-                $self->{mode} = IDLE_MODE;
-
-            }
-
-        }    # End if something else scheduled
-
-        # Otherwise, nothing scheduled; shut down.
-        else {
-
-            $kernel->yield('shutdown');
-
-        }
-
-    }    # End nothing right now
 
 }
 
@@ -399,10 +342,6 @@ sub play_scheduled {
     if (   ( $self->get_mode() == PLAY_MODE )
         && ( $self->{player}->get_status() == PLAYER_STATUS_PLAY ) )
     {
-
-        # Add the currently-scheduled item to the waiting list
-        # This discards any existing $seek
-        push( @{ $self->{waitlist} }, $movie );
 
         return;
 
@@ -444,7 +383,7 @@ sub wait_for_scheduled {
         $self->{mode} = FILL_MODE;
 
         # Tell our Filler to get to work
-        $kernel->post( 'Filler', 'start_fill', $self->{schedule_view} );
+        $kernel->post( 'Filler', 'start_fill', $self->get_time_to_next() );
 
     }    # End if enough time
 
