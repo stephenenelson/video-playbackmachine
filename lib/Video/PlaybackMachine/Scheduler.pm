@@ -18,7 +18,6 @@ use Date::Manip;
 use POSIX 'INT_MAX';
 
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
-use Video::PlaybackMachine::ScheduleView;
 use Video::PlaybackMachine::Config;
 
 use Time::Duration;
@@ -85,7 +84,6 @@ sub new {
 	      mode => START_MODE,
 	      offset => $in{offset},
 	      minimum_fill => $Minimum_Fill,
-	      schedule_view => Video::PlaybackMachine::ScheduleView->new($in{schedule_table}, $in{offset}),
 	      watcher_session => $in{watcher},
 	      logger => Log::Log4perl->get_logger('Video::Playback::Scheduler'),
 	     };
@@ -119,6 +117,21 @@ sub get_mode {
   return $_[0]->{'mode'};
 }
 
+# Offset is the difference between the current time
+# and the time on the schedule: ( $sched - $real ).
+sub offset {
+	my $self = shift;
+	
+	return $_[0]->{'offset'};
+}
+
+# The schedule time.
+sub time {
+	my $self = shift;
+	
+	return time() + $self->offset();
+}
+
 ##
 ## should_be_playing()
 ##
@@ -139,30 +152,27 @@ sub should_be_playing {
 
 sub get_next_entry {
   my $self = shift;
-  return $self->{schedule_view}->get_next_entry(@_);
+
+  return scalar $self->{schedule_table}->get_entries_after(
+				    $self->time(),
+				    1);
+
 }
 
 sub get_time_to_next {
   my $self = shift;
-  my $schedule_to_next = $self->{schedule_view}->get_time_to_next(@_);
+
+  my $next = $self->get_next_entry() or return;
+
+  # TODO The 'run_forever' business should probably be in the calling function, not down here
+
   if ( (! defined($schedule_to_next) ) && $self->{'run_forever'} ) {
     return INT_MAX;
   }
   else {
-    return $schedule_to_next;
+    return $next->start_time() - $self->time();
   }
 }
-
-sub schedule_to_real {
-  my $self = shift;
-  return $self->{'schedule_view'}->schedule_to_real(@_);
-}
-
-sub real_to_schedule {
-  my $self = shift;
-  return $self->{'schedule_view'}->real_to_schedule(@_);
-}
-
 
 ##
 ## Returns the amount of time required to skip to play
@@ -207,24 +217,9 @@ sub _start {
   $heap->{player_session} = $self->{player}->spawn();
   $heap->{filler_session} = $self->{filler}->spawn();
 
-  # Start the time ticker
-  $kernel->delay('time_tick', Video::PlaybackMachine::Config->config()->time_tick() );
-
   # Check the database for things that need playing
   $kernel->yield('update');
 
-}
-
-##
-## time_tick()
-##
-## Updates the process table entry with the current time (according to the schedule)
-##
-sub time_tick
-{
-	my $time = $_[OBJECT]->real_to_schedule(time());
-	$0 = "playback_machine: " . scalar localtime($time) . "($time)";
-	$_[KERNEL]->delay('time_tick', Video::PlaybackMachine::Config->config()->time_tick());
 }
 
 ##
@@ -264,7 +259,7 @@ sub update {
       $self->{'logger'}->debug("Time to play $entry");
 
       # Play it
-      $kernel->yield('play_scheduled', $entry->get_listing(), $self->get_seek($entry));
+      $kernel->yield('play_scheduled', $entry, $self->get_seek($entry));
       return;
 
     } # End if supposed to be playing
@@ -312,6 +307,7 @@ sub finished {
   # Log the item that finished playing
   $kernel->post('Logger', 'log_played_movie', $request->[0], $request->[1], time(), $response->[0]);
 
+  # TODO this is not a feature we use. Remove it and its little dog, too.
   # If there's something waiting to be played
   my $waiting_movie;
   if ( $waiting_movie = shift @{ $self->{waitlist} } ) {
@@ -399,7 +395,6 @@ sub play_scheduled {
 
     # Add the currently-scheduled item to the waiting list
     # This discards any existing $seek
-    # TODO Do we actually do anything with the waitlist?
     push(@{ $self->{waitlist} }, $movie);
 
     return;
@@ -416,7 +411,11 @@ sub play_scheduled {
     $self->{'mode'} = PLAY_MODE;
 
     # Start playing the movie
-    $movie->play($seek);
+    $kernel->post('Player', 'play', 
+    	$session->postback('finished', $self, time()),
+    	0,
+    	$movie->mrl
+    );
 
     # Schedule the next item from the schedule table
     $kernel->delay('schedule_next', 3);
@@ -513,3 +512,7 @@ sub shutdown {
 
 
 1;
+
+=head1 NAME
+
+Video::PlaybackMachine::Scheduler - Plays movies at the appropriate times
