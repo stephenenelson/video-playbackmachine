@@ -162,8 +162,9 @@ sub get_time_to_next {
 
     my $next = $self->get_next_entry() or return;
 
-# TODO The 'run_forever' business should probably be in the calling function, not down here
-
+	# TODO The 'run_forever' business should probably be in the 
+	# calling function, not down here
+	
     if ( ( !defined($schedule_to_next) ) && $self->{'run_forever'} ) {
         return INT_MAX;
     }
