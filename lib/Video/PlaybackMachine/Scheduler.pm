@@ -129,54 +129,13 @@ sub get_mode {
 ## Returns the movie, if any, which should be playing right
 ## now.
 ##
-## Enforces our playback policies.
-##
-## If we're just starting up, and something is scheduled to be played
-## right now, we'll play it no matter how far along we're supposed to
-## be. That way we can restart in the middle of a movie and not miss the
-## whole thing.
-##
-## Otherwise, it returns a movie if there's one scheduled for right
-## now and playing it would not make us miss an unacceptably long part
-## of the movie.
-##
 sub should_be_playing {
   my $self = shift;
-  my $schedule_now = $self->real_to_schedule(@_);
 
-  my $current = $self->{schedule_view}->get_schedule_table()->get_entry_during($schedule_now);
-
-  # If there's no entry to play right now, return nothing
-  defined($current) or return;
-
-   if ($self->get_mode() == START_MODE) {
-
-    # Return the movie listing
-    return $current;
-
-  } # End if we're in startup mode
-
-  # Else we're not in startup mode
-  else {
-
-    # Return the movie if it's not too far along
-    if ($self->get_seek($current) < $self->{skip_tolerance} ) {
-      return $current;
-    }
-    # TODO make sure that there's no edge condition
-    else {
-      return;
-    }
-
-  } # End else not in startup mode
-
+  my $current = scalar $self->{schedule_table}->get_entry_during( $self->time() );
+  
+  return $current;
 }
-
-sub get_seek {
-  my $self = shift;
-  return $self->{schedule_view}->get_seek(@_);
-}
-
 
 sub get_next_entry {
   my $self = shift;
