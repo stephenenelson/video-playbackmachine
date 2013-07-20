@@ -34,7 +34,7 @@ sub schema {
 	my $type = shift;
 	
 	unless ( defined($Schema) && $Schema->storage->connected() ){
-		$Schema = Video::PlaybackMachine::Schema->connect("dbi:Pg:dbname=$Database_Name", '', '');
+		$Schema = Video::PlaybackMachine::Schema->connect("dbi:SQLite:dbname=$Database_Name", '', '');
 	}
 	
 	return $Schema;

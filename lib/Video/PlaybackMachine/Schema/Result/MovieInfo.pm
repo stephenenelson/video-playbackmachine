@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('movie_info_id');
 
-__PACKAGE__->add_unique_constraint('mrl');
+__PACKAGE__->add_unique_constraint(['mrl']);
 
 __PACKAGE__->has_many(
   'schedule_entries',
