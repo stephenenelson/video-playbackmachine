@@ -10,7 +10,7 @@ __PACKAGE__->table('movie_info');
 __PACKAGE__->add_columns(
 	'movie_info_id' => { data_type => 'integer', is_nullable => 0 },
 	'mrl' => { data_type => 'text', is_nullable => 0 },
-	'duration' => { data_type => 'integer', is_nullable => 1 },
+	'duration' => { data_type => 'integer', is_nullable => 0 },
 	'file_size' => { data_type => 'integer', is_nullable => 1 }
 );
 
