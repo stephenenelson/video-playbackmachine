@@ -23,10 +23,11 @@ use Video::PlaybackMachine::DB;
 ##
 sub new {
     my $type = shift;
+    my (%in) = @_;
+    
     my $self = {
-        schedule_name => Video::PlaybackMachine::Config->config->schedule(),
-        dbh           => undef,
-        logger        => Log::Log4perl->get_logger('Video.PlaybackMachine.DB'),
+        schedule_name => $in{'schedule_name'} // Video::PlaybackMachine::Config->config->schedule(),
+        schema        => $in{'schema'} // Video::PlaybackMachine::DB->schema(),
     };
     bless $self, $type;
 }
@@ -35,7 +36,11 @@ sub new {
 
 sub getDbh { return Video::PlaybackMachine::DB->db(); }
 
-sub schema { return Video::PlaybackMachine::DB->schema(); }
+sub schema {
+	my $self = shift;
+	
+	return $self->{'schema'};
+}
 
 sub schedule_name {
 	my $self = shift;
@@ -56,7 +61,7 @@ sub get_entries_between {
     my $self = shift;
     my ( $begin_time, $end_time ) = @_;
 
-    my $schema = Video::PlaybackMachine::DB->schema();
+    my $schema = $self->schema();
 
     my $entries_rs = $schema->resultset('ScheduleEntry')->search(
         {
@@ -96,16 +101,17 @@ sub get_entries_after {
 
     # Get next content_schedule entry
     
- 	my $schema = Video::PlaybackMachine::DB->schema();   
+ 	my $schema = $self->schema();   
  
 	my $entries_rs = $schema->resultset('ScheduleEntry')->search(
 		{
 			'start_time' => { '>', $time },
-			'schedule'   => $schedule,
+			'schedule.name'   => $self->schedule_name(),
 		},
 		{
 			'limit' => $num_entries,
-			'order_by' => 'start_time'
+			'order_by' => 'start_time',
+			'join' => 'schedule'
 		}
 	);
 
