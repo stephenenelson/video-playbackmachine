@@ -139,7 +139,7 @@ sub get_entry_during {
 				'end_time'      => { '<', $time }
     		},
 			{
-				'join' => 'schedule_entry_end'
+				'join' => ['schedule_entry_end', 'schedule']
 			}
     	);
 
