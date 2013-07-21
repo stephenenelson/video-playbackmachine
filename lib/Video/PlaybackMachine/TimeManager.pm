@@ -76,7 +76,7 @@ sub new {
 sub get_segment {
   my $self = shift;
   my ($time_left) = @_;
-
+  
   # For each segment starting from current in display order
   foreach my $segment ( $self->_segments_left() ) {
 
