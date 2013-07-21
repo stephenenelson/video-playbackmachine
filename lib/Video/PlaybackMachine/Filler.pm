@@ -34,12 +34,17 @@ sub new {
   my $type = shift;
   my (%in) = @_;
 
-  (ref $in{'segments'} eq 'ARRAY')
-    or croak($type, "::new() called improperly");
+  if ( defined $in{'segments'} ) {
+	  (ref $in{'segments'} eq 'ARRAY')
+		or croak($type, "::new() called improperly");
 
-  foreach my $segment (@{ $in{'segments'} }) {
-    ref $segment eq 'Video::PlaybackMachine::FillSegment'
-      or croak($type, "::new: option 'segments' contains '$segment')");
+	  foreach my $segment (@{ $in{'segments'} }) {
+		ref $segment eq 'Video::PlaybackMachine::FillSegment'
+		  or croak($type, "::new: option 'segments' contains '$segment')");
+	  }
+  }
+  else {
+  	$in{'segments'} = [];
   }
 
   my $self = {
@@ -122,19 +127,22 @@ sub fill_done {
 ## played, we're done.
 ##
 sub next_fill {
+	my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
+	
+  $heap->{'view'} 
+    or $self->{'logger'}->logconfess("Somehow called next_fill on us without calling start_fill");
+    
+  my $time_to_next = $heap->{'view'}->get_time_to_next();
+  
+  $self->{'logger'}->debug("Time to next: $time_to_next");
 
-  $_[HEAP]{'view'} 
-    or $_[OBJECT]{'logger'}->logconfess("Somehow called next_fill on us without calling start_fill");
-
-  my ($segment, $time) = $_[HEAP]{'time_manager'}->get_segment(
-							     $_[HEAP]{'view'}->get_time_to_next(time())
-							    )
+  my ($segment, $time) = $heap->{'time_manager'}->get_segment( $time_to_next  )
     or do {
-      $_[KERNEL]->yield('fill_done');
+      $kernel->yield('fill_done');
       return;
     };
 
-  $_[OBJECT]{'logger'}->debug("Starting fill segment name: ", $segment->get_name());
+  $self->{'logger'}->debug("Starting fill segment name: ", $segment->get_name());
 
   $segment->get_producer()->start($time);
 
