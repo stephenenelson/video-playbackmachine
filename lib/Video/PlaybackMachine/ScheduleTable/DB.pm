@@ -8,14 +8,9 @@ package Video::PlaybackMachine::ScheduleTable::DB;
 
 use strict;
 use warnings;
-use DBI;
-use Carp;
-use Date::Manip;
-use Log::Log4perl;
 
-use Video::PlaybackMachine::Movie;
-use Video::PlaybackMachine::AVFile;
-use Video::PlaybackMachine::ScheduleEntry;
+use Carp;
+
 use Video::PlaybackMachine::Config;
 use Video::PlaybackMachine::DB;
 
