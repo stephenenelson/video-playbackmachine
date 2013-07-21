@@ -126,8 +126,8 @@ sub offset {
 # The schedule time.
 sub time {
     my $self = shift;
-
-    return time() + $self->offset();
+    
+    return CORE::time() + $self->offset();
 }
 
 ##
@@ -267,8 +267,8 @@ sub update {
 sub finished {
     my ( $self, $kernel, $request, $response ) =
       @_[ OBJECT, KERNEL, ARG0, ARG1 ];
-
-    my $now = time();
+      
+    my $now = CORE::time();
 
     # If we've been running longer than the restart interval, restart the system
     my $config = Video::PlaybackMachine::Config->config();
@@ -284,7 +284,7 @@ sub finished {
 
     # Log the item that finished playing
     $kernel->post( 'Logger', 'log_played_movie', $request->[0], $request->[1],
-        time(), $response->[0] );
+        CORE::time(), $response->[0] );
 
 	# If there's something else scheduled
 	if ( defined $self->get_next_entry($now) ) {
@@ -359,7 +359,7 @@ sub play_scheduled {
 
         # Start playing the movie
         $kernel->post( 'Player', 'play',
-            $session->postback( 'finished', $self, time() ),
+            $session->postback( 'finished', $self, CORE::time() ),
             0, $movie->mrl );
 
         # Schedule the next item from the schedule table
@@ -407,7 +407,7 @@ sub schedule_next {
         # Set an alarm to play it
         my $alarm_offset = $self->{'schedule_view'}
           ->schedule_to_real( $entry->get_start_time() );
-        my $in_time = $alarm_offset - time();
+        my $in_time = $alarm_offset - CORE::time();
 
         ( $in_time >= 0 )
           or $self->{'logger'}->logdie(
