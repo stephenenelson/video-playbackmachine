@@ -22,7 +22,6 @@ use base qw(
 );
 
 use Video::PlaybackMachine::TimeLayout::FixedTimeLayout;
-use Video::PlaybackMachine::AVFile;
 
 ########################### Class Constants #######################
 
