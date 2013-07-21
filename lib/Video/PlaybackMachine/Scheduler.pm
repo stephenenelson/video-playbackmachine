@@ -78,12 +78,12 @@ sub new {
         player => $in{player} || Video::PlaybackMachine::Player->new(),
         filler => $in{filler} || Video::PlaybackMachine::Filler->new(),
         mode            => START_MODE,
-        offset          => $in{offset},
+        offset          => $in{offset} // 0,
         minimum_fill    => $Minimum_Fill,
         watcher_session => $in{watcher},
         logger => Log::Log4perl->get_logger('Video::Playback::Scheduler'),
     };
-
+    
     $self->{'logger'}->info("$0 started");
 
     bless $self, $type;
@@ -120,7 +120,7 @@ sub get_mode {
 sub offset {
     my $self = shift;
 
-    return $_[0]->{'offset'};
+    return $self->{'offset'};
 }
 
 # The schedule time.
@@ -159,13 +159,13 @@ sub get_next_entry {
 
 sub get_time_to_next {
     my $self = shift;
-
+    
     my $next = $self->get_next_entry() or return;
 
 	# TODO The 'run_forever' business should probably be in the 
 	# calling function, not down here
 	
-    if ( ( !defined($schedule_to_next) ) && $self->{'run_forever'} ) {
+    if ( ( !defined($next) ) && $self->{'run_forever'} ) {
         return INT_MAX;
     }
     else {
@@ -337,7 +337,7 @@ sub warning_scheduled {
 }
 
 sub play_scheduled {
-    my ( $self, $kernel, $movie, $seek ) = @_[ OBJECT, KERNEL, ARG0, ARG1 ];
+    my ( $self, $kernel, $session, $movie, $seek ) = @_[ OBJECT, KERNEL, SESSION, ARG0, ARG1 ];
 
     # If we're playing something scheduled
     if (   ( $self->get_mode() == PLAY_MODE )
@@ -384,7 +384,7 @@ sub wait_for_scheduled {
         $self->{mode} = FILL_MODE;
 
         # Tell our Filler to get to work
-        $kernel->post( 'Filler', 'start_fill', $self->get_time_to_next() );
+        $kernel->post( 'Filler', 'start_fill', $self );
 
     }    # End if enough time
 
