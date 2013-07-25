@@ -3,6 +3,8 @@ package Video::PlaybackMachine::Schema::Result::ScheduleEntry;
 use strict;
 use warnings;
 
+use Carp;
+
 use base 'DBIx::Class::Core';
 
 __PACKAGE__->table("schedule_entry");
@@ -44,4 +46,11 @@ __PACKAGE__->belongs_to(
   },
 );
 
+sub get_start_time {
+	my $self = shift;
+	
+	carp "get_start_time deprecated";
+	
+	return $self->start_time();
+}
 1;
