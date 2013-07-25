@@ -151,6 +151,25 @@ sub get_entry_during {
 
 }
 
+##
+## get_first_entry()
+##
+## Returns:
+##   First entry in schedule table
+sub get_first_entry {
+	my $self = shift;
+	
+	return $self->schema()->resultset('ScheduleEntry')
+		->search({
+			'schedule.name' => $self->schedule_name()
+		},
+			{
+				'join'     => 'schedule',
+				'order_by' => 'start_time'
+			}
+		)->first();
+}
+
 1;
 
 __END__
