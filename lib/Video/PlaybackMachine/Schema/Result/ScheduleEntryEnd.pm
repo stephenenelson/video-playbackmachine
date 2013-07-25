@@ -18,13 +18,7 @@ __PACKAGE__->set_primary_key('schedule_entry_end_id');
 __PACKAGE__->belongs_to(
   "schedule_entry",
   "Video::PlaybackMachine::Schema::Result::ScheduleEntry",
-  { 'schedule_entry_id' => "schedule_entry_id" },
-  {
-    is_deferrable => 0,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
+  { 'foreign.schedule_entry_id' => "self.schedule_entry_id" }
 );
 
 1;

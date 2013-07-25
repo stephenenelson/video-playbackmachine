@@ -142,7 +142,7 @@ sub get_entry_during {
     		{
 				'schedule.name' => $self->schedule_name(),
 				'start_time'    => { '>=', $time },
-				'end_time'      => { '<', $time }
+				'schedule_entry_end.stop_time'      => { '<', $time }
     		},
 			{
 				'join' => ['schedule_entry_end', 'schedule']

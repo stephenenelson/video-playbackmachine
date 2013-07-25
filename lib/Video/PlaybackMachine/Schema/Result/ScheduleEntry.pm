@@ -27,7 +27,7 @@ __PACKAGE__->might_have(
 __PACKAGE__->might_have(
   "schedule_entry_end",
   "Video::PlaybackMachine::Schema::Result::ScheduleEntryEnd",
-  { schedule_entry_id => "schedule_entry_id" },
+  { 'foreign.schedule_entry_id' => "self.schedule_entry_id" },
   { is_deferrable => 0 },
 );
 
