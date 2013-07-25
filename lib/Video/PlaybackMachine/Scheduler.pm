@@ -98,7 +98,7 @@ sub spawn {
 
         object_states => [
             $self => [
-                qw(_start time_tick finished update play_scheduled warning_scheduled schedule_next shutdown wait_for_scheduled query_next_scheduled)
+                qw(_start finished update play_scheduled warning_scheduled schedule_next shutdown wait_for_scheduled query_next_scheduled)
             ]
         ],
     );
@@ -337,7 +337,7 @@ sub warning_scheduled {
 }
 
 sub play_scheduled {
-    my ( $self, $kernel, $session, $movie, $seek ) = @_[ OBJECT, KERNEL, SESSION, ARG0, ARG1 ];
+    my ( $self, $kernel, $session, $entry, $seek ) = @_[ OBJECT, KERNEL, SESSION, ARG0, ARG1 ];
 
     # If we're playing something scheduled
     if (   ( $self->get_mode() == PLAY_MODE )
@@ -360,7 +360,7 @@ sub play_scheduled {
         # Start playing the movie
         $kernel->post( 'Player', 'play',
             $session->postback( 'finished', $self, CORE::time() ),
-            0, $movie->mrl );
+            0, $entry->mrl );
 
         # Schedule the next item from the schedule table
         $kernel->delay( 'schedule_next', 3 );
@@ -375,7 +375,7 @@ sub wait_for_scheduled {
     defined $self->get_time_to_next()
       or $self->{'logger'}->logdie(
         "Called wait_for_scheduled with nothing to wait for; schedule time is "
-          . scalar localtime( $self->real_to_schedule() ) );
+          . scalar localtime( $self->time() ) );
 
     # If there's enough time before the next item to bother with fill
     if ( $self->get_time_to_next() > $self->{minimum_fill} ) {
@@ -405,22 +405,21 @@ sub schedule_next {
     if ( my $entry = $self->get_next_entry() ) {
 
         # Set an alarm to play it
-        my $alarm_offset = $self->{'schedule_view'}
-          ->schedule_to_real( $entry->get_start_time() );
+        my $alarm_offset = $entry->start_time() - $self->offset();
         my $in_time = $alarm_offset - CORE::time();
 
         ( $in_time >= 0 )
           or $self->{'logger'}->logdie(
             "Attempt to schedule '",
-            $entry->get_title(),
+            $entry->mrl(),
             "' in the past ($in_time) at ",
             scalar localtime $alarm_offset
           );
 
-        $self->{'logger'}->info( "scheduling: ", $entry->get_title(), " at ",
+        $self->{'logger'}->info( "scheduling: ", $entry->mrl(), " at ",
             scalar localtime($alarm_offset),
             " in ", duration($in_time) );
-        $kernel->alarm( 'play_scheduled', $alarm_offset, $entry->get_listing(),
+        $kernel->alarm( 'play_scheduled', $alarm_offset, $entry,
             0 );
 
     }    # End if there's something left
