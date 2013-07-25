@@ -43,7 +43,7 @@ MAIN: {
 
     }
     else {
-	Video::PlaybackMachine->run();
+	Video::PlaybackMachine->run(undef, 1);
     }
 
 }

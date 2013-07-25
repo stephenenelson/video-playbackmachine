@@ -27,7 +27,7 @@ Video::PlaybackMachine::Config->init_logging();
 
 sub run {
     my $type = shift;
-    my ($start_time) = @_;
+    my ($start_time, $start_at_beginning) = @_;
 
     defined $start_time or $start_time = time();
 
@@ -37,23 +37,21 @@ sub run {
       Video::PlaybackMachine::ScheduleTable::DB->new(
        schedule_name => $schedule_name );
 
-    my $watcher = Video::PlaybackMachine::DatabaseWatcher->new(
-        dbh     => $table->getDbh(),
-        table   => 'content_schedule',
-        session => 'Scheduler',
-        event   => 'update',
-    );
-
-    my $offset = $type->get_offset($start_time, $table);
-
-    my $watcher_session = $watcher->spawn();
+    my $offset;
+    
+    if ($start_at_beginning) {
+    		my $first = $table->get_first_entry();
+    		$offset = $first->start_time() - ( time() + 10 );
+    }
+    else {
+    	$offset = $type->get_offset($start_time, $table);
+    }
 
     my $scheduler = Video::PlaybackMachine::Scheduler->new(
         skip_tolerance => $config->skip_tolerance(),
         schedule_table => $table,
         filler         => $config->get_fill($table),
-        offset         => $offset,
-        watcher        => $watcher_session
+        offset         => $offset
     );
 
     $scheduler->spawn();
