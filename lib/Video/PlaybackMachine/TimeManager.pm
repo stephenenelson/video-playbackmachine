@@ -80,7 +80,7 @@ sub get_segment {
   # For each segment starting from current in display order
   foreach my $segment ( $self->_segments_left() ) {
 
-    $self->{'logger'}->debug("Considering segment ", $segment->get_name());
+    $self->{'logger'}->debug("Considering segment ", $segment->get_name(),  " with time left $time_left");
 
     # Move to next segment if we don't have time to play it
     my $time_remaining = $self->_seconds_remaining($segment, $time_left);
