@@ -13,6 +13,13 @@ use DateTime::TimeZone::UTC;
 use Video::Xine;
 use Video::Xine::Stream ':meta_constants';
 use POSIX 'ceil';
+use Getopt::Long;
+
+our $Erase_Flag = 0;
+
+GetOptions(
+	'erase' => \$Erase_Flag
+);
 
 my ($schedule_name, $csv_file, $db_file) = @ARGV;
 
@@ -35,11 +42,19 @@ MAIN: {
 		on_error => 'croak'
 	);
 	
+	if ($Erase_Flag && -e $db_file) {
+		rename($db_file, "$db_file.old");
+	}
+	
 	my $schema = Video::PlaybackMachine::Schema->connect(
 		"dbi:SQLite:dbname=$db_file", 
 		'', 
 		''
 	);
+	
+	if ($Erase_Flag) {
+		$schema->deploy({ 'add_drop_table' => 0 });
+	}
 	
 	my $schedule = $schema->resultset('Schedule')->create({ 'name' => $schedule_name });
 	
