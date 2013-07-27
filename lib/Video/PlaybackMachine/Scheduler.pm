@@ -160,16 +160,18 @@ sub get_next_entry {
 sub get_time_to_next {
     my $self = shift;
     
-    my $next = $self->get_next_entry() or return;
+    my $next = $self->get_next_entry();
 
 	# TODO The 'run_forever' business should probably be in the 
 	# calling function, not down here
-	
-    if ( ( !defined($next) ) && $self->{'run_forever'} ) {
-        return INT_MAX;
-    }
+	if ( defined($next) ) {
+        return $next->start_time() - $self->time();	
+	}
+	elsif ( $self->{'run_forever'} ) {
+        return INT_MAX;	
+	}
     else {
-        return $next->start_time() - $self->time();
+    	return;
     }
 }
 
