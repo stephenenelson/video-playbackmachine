@@ -46,7 +46,7 @@ sub add_text {
 
   my $entry = $poe_kernel->call('Scheduler', 'query_next_scheduled')
     or return;
-  my $next_time = strftime '%l:%M', localtime ($entry->get_start_time());
+  my $next_time = strftime '%l:%M', localtime ($entry->start_time());
 
   $self->write_centered($image, "Up Next:\n\n" . $entry->movie_info()->title()  ."\n\n$next_time");
 
