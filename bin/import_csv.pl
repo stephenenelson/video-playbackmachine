@@ -11,7 +11,7 @@ use DateTime;
 use DateTime::Format::Strptime;
 use DateTime::TimeZone::UTC;
 use Video::Xine;
-use Video::Xine::Stream;
+use Video::Xine::Stream ':meta_constants';
 use POSIX 'ceil';
 
 my ($schedule_name, $csv_file, $db_file) = @ARGV;
@@ -58,6 +58,7 @@ MAIN: {
 	
 	while ( my $row = $csv->getline( $fh ) ) {
 		my ($start_str, $mrl) = @$row;
+		length($start_str) or next;
 		
 		my $start_dt = $strp_spreadsheet->parse_datetime( $start_str );
 				
@@ -65,6 +66,10 @@ MAIN: {
 		
 		$stream->open($mrl) or die "Couldn't open '$mrl'";
 		my (undef, undef, $length_millis) = $stream->get_pos_length();
+		my $title = $stream->get_meta_info(XINE_META_INFO_TITLE);
+		if ( defined $title ) {
+			print STDERR "$title\n";
+		}
 		$stream->close();
 		
 		my $length_secs = ceil( $length_millis / 1000 );
@@ -75,7 +80,8 @@ MAIN: {
 							});
 		
 		$movie_info_rs->create({'mrl' => $mrl,
-								'duration' => $length_secs
+								'duration' => $length_secs,
+								'title' => $title
 							   });
 							   
 		$entry_end_rs->create({ 'schedule_entry_id' => $entry->schedule_entry_id(),

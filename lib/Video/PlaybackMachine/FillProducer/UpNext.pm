@@ -48,7 +48,7 @@ sub add_text {
     or return;
   my $next_time = strftime '%l:%M', localtime ($entry->get_start_time());
 
-  $self->write_centered($image, "Up Next:\n\n" . $entry->get_title()  ."\n\n$next_time");
+  $self->write_centered($image, "Up Next:\n\n" . $entry->movie_info()->title()  ."\n\n$next_time");
 
 
 }
@@ -61,8 +61,11 @@ sub add_text {
 sub is_available {
   my $self = shift;
 
-  $poe_kernel->call('Scheduler', 'query_next_scheduled')
+  my $entry = $poe_kernel->call('Scheduler', 'query_next_scheduled')
     or return;
+    
+  $entry->movie_info() or return;  
+    
   1;
 }
 
