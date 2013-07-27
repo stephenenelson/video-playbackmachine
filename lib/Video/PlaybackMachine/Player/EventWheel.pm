@@ -60,7 +60,7 @@ sub get_events {
 
   # Translate all events into callbacks
   while ( my $event = $self->{queue}->get_event() ) {
-    $self->{'logger'}->debug("Received event: ", $event->get_type(), "\n");
+    $self->{'logger'}->debug("Received Xine event: ", $event->get_type(), "\n");
     if ( $event->get_type() == XINE_EVENT_UI_PLAYBACK_FINISHED ) {
       $self->{'stream'}->close();
     }
