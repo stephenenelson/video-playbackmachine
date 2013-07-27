@@ -131,6 +131,9 @@ sub play {
   
   # Clear out any previous events
   $heap->{'stream_queue'}->clear_events();
+  
+  # Clear the screen
+  $heap->{'display'}->clearWindow( $heap->{'window'} );
 
   $log->info("Playing $files[0]");
 
@@ -172,6 +175,8 @@ sub stop {
   if ( $_[OBJECT]->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
     $_[OBJECT]->{'stream'}->stop();
   }
+ 
+  $_[HEAP]->{'display'}->clearWindow( $_[HEAP]->{'window'} ); 
   
 }
 
@@ -195,6 +200,9 @@ sub play_still {
   }
   $log->debug("Showing still '$_[ARG0]'");
   eval {
+	  # Clear the screen
+  	$heap->{'display'}->clearWindow( $heap->{'window'} );
+
     $heap->{'display'}->displayStill($heap->{'window'}, $still);
   };
   if ($@) {
