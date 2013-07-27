@@ -208,7 +208,13 @@ sub _start {
 ## with the call() command.
 ##
 sub query_next_scheduled {
-    return $_[OBJECT]->get_next_entry( undef, $_[ARG0] );
+	my ($self, $num) = @_;
+	
+	$num //= 1;
+
+    return
+      $self->{schedule_table}->get_entries_after( $self->time(), $num );
+
 }
 
 ##
