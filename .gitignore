@@ -8,3 +8,4 @@ Video-PlaybackMachine-*
 .build
 test.db
 test.db.orig
+*.old
