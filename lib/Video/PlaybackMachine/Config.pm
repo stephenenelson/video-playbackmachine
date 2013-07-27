@@ -92,7 +92,7 @@ BEGIN {
 
         $config->define( 'time_tick=i', { DEFAULT => 5 } );
 
-        $config->define( 'daemonize!', { DEFAULT => 1 } );
+        $config->define( 'daemonize!', { DEFAULT => 0 } );
 
         $config->getopt();
 
