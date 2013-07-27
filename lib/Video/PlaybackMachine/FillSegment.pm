@@ -70,7 +70,7 @@ sub get_name {
 sub is_available {
   my $self = shift;
   my ($time_left) = @_;
-  defined $time_left or croak(ref $self, "::is_available() called incorrectly");
+  defined $time_left or confess(ref $self, "Argument '$time_left' required");
 
   $self->get_producer()->is_available() or return;
 
