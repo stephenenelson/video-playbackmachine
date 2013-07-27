@@ -134,6 +134,11 @@ sub next_fill {
     
   my $time_to_next = $heap->{'view'}->get_time_to_next();
   
+  if (! defined $time_to_next ) {
+  	$kernel->yield('fill_done');
+  	return;
+  }
+  
   $self->{'logger'}->debug("Time to next: $time_to_next");
 
   my ($segment, $time) = $heap->{'time_manager'}->get_segment( $time_to_next  )
