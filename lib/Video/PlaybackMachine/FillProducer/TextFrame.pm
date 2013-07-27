@@ -26,9 +26,9 @@ our @Background_Color = (0,0,100,255);
 
 our @Text_Color = (0,255,255,255);
 
-our @Font_Path = qw(/usr/share/fonts/bitstream-vera);
+our @Font_Path = qw(/usr/share/fonts/truetype/ubuntu-font-family);
 
-our $Font = "Vera";
+our $Font = "FreeMono";
 
 our $Font_Size = "40";
 
