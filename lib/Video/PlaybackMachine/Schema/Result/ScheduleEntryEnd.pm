@@ -21,4 +21,5 @@ __PACKAGE__->belongs_to(
   { 'foreign.schedule_entry_id' => "self.schedule_entry_id" }
 );
 
+__PACKAGE__->add_unique_constraint(['schedule_entry_end_id', 'schedule_entry_id']);
 1;
