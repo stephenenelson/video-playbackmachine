@@ -15,7 +15,8 @@ use Image::Imlib2;
 use File::Temp qw(tempfile);
 use POSIX qw(strftime);
 
-with 'Video::PlaybackMachine::FillProducer::AbstractStill';
+with 'Video::PlaybackMachine::FillProducer::AbstractStill',
+	'Video::PlaybackMachine::Logger';
 
 ############################# Parameters #############################
 
