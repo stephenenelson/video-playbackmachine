@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer;
 
+use Moo::Role;
+
 ####
 #### Video::PlaybackMachine::FillProducer
 ####
@@ -8,9 +10,7 @@ package Video::PlaybackMachine::FillProducer;
 #### Interface for different ways of producing Fill content.
 ####
 
-use strict;
-use warnings;
-use Carp;
+requires qw/start time_layout is_available has_audio/;
 
 ############################# Class Constants #############################
 
@@ -28,7 +28,6 @@ use Carp;
 ## FillProducer will send a 'still_ready' or 'movie_ready'
 ## signal.
 ##
-sub start { }
 
 ##
 ## get_time_layout()
@@ -39,7 +38,6 @@ sub start { }
 ## Returns a TimeLayout that tells us how long the given
 ## content should be played.
 ##
-sub get_time_layout { }
 
 ##
 ## is_available()
@@ -49,7 +47,6 @@ sub get_time_layout { }
 ##
 ## Returns true if this producer has something it can do, false otherwise.
 ##
-sub is_available { }
 
 ##
 ## has_audio()
@@ -59,7 +56,7 @@ sub is_available { }
 ##
 ## Returns true if this producer will produce audio content.
 ##
-sub has_audio { }
 
+no Moo::Role;
 
 1;

@@ -60,9 +60,9 @@ sub start_fill {
 
   # Store the current schedule in the heap
   $_[HEAP]{'view'} = $_[ARG0]
-        or $_[OBJECT]->{'logger'}->logconfess('ARG0 required');
+        or $_[OBJECT]->logconfess('ARG0 required');
 
-  $_[OBJECT]->{'logger'}->debug("Filling, ttn=", duration($_[ARG0]->get_time_to_next()),"\n");
+  $_[OBJECT]->debug("Filling, ttn=", duration($_[ARG0]->get_time_to_next()),"\n");
 
   # View the first segment
   $_[KERNEL]->yield('next_fill');

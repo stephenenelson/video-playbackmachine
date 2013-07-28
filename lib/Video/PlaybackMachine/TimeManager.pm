@@ -134,7 +134,7 @@ sub _seconds_remaining {
     {
       $time_remaining > 0 or return 0;
       $segment->is_available($time_remaining) or next;
-      $time_remaining -= $segment->get_producer()->get_time_layout()->preferred_time($time_remaining);
+      $time_remaining -= $segment->get_producer()->time_layout()->preferred_time($time_remaining);
     }
 
   return $time_remaining;

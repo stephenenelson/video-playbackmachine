@@ -4,8 +4,7 @@ use Moo::Role;
 use Log::Log4perl;
 
 has 'logger' => (
-	'is' => 'ro',
-	'builder' => 1,
+	'is' => 'lazy',
 	'handles' => [ qw/ trace debug info warn error fatal
 						is_trace is_debug is_info is_warn is_error is_fatal
 						logwarn logdie logconfess

@@ -74,7 +74,7 @@ sub is_available {
 
   $self->get_producer()->is_available() or return;
 
-  return ($self->get_producer->get_time_layout()->min_time() <= $time_left);
+  return ($self->get_producer->time_layout()->min_time() <= $time_left);
 }
 
 ##

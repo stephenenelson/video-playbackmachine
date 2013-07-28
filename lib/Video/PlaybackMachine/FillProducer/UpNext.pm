@@ -6,11 +6,12 @@ package Video::PlaybackMachine::FillProducer::UpNext;
 #### $Revision$
 ####
 
-use strict;
-use warnings;
+use Moo;
+
 use Carp;
 
-use base 'Video::PlaybackMachine::FillProducer::TextFrame';
+extends 'Video::PlaybackMachine::FillProducer::TextFrame';
+
 use POE;
 
 use POSIX qw(strftime);
@@ -18,22 +19,6 @@ use POSIX qw(strftime);
 ############################# Class Constants #############################
 
 ############################## Class Methods ##############################
-
-##
-## new()
-##
-## Arguments: (hash)
-##  time => int -- time in seconds image should be displayed
-##
-sub new {
-  my $type = shift;
-
-  my $self = $type->SUPER::new(@_);
-
-  return $self;
-
-}
-
 
 ############################# Object Methods ##############################
 
