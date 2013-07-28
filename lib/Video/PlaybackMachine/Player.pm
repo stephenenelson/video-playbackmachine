@@ -92,7 +92,10 @@ sub _start {
   $_[HEAP]->{'stream_queue'} =
     Video::PlaybackMachine::Player::EventWheel->new($s);
   my $fq =
-    Video::PlaybackMachine::EventWheel::FullScreen->new($display, $_[HEAP]->{'window'});
+    Video::PlaybackMachine::EventWheel::FullScreen->new(
+    	'source' => $display, 
+    	'window' => $_[HEAP]->{'window'}
+    );
   $fq->set_expose_handler(
 			  sub { $s->get_video_port()->send_gui_data(XINE_GUI_SEND_EXPOSE_EVENT, $_[1]); } );
   $fq->spawn();
