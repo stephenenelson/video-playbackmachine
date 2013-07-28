@@ -8,52 +8,22 @@ package Video::PlaybackMachine::Filler;
 #### POE session for the Filler.
 ####
 
-use strict;
-use warnings;
+use Moo;
+
 use Carp;
 
 use POE;
 use POE::Session;
 
 use Time::Duration;
-use Log::Log4perl;
 
 use Video::PlaybackMachine::TimeManager;
 
-############################# Class Constants #############################
+with 'Video::PlaybackMachine::Logger';
 
-############################## Class Methods ##############################
+############################# Parameters #############################
 
-##
-## new()
-##
-## Arguments: hash
-##   segments => arrayref of FillSegment
-##
-sub new {
-  my $type = shift;
-  my (%in) = @_;
-
-  if ( defined $in{'segments'} ) {
-	  (ref $in{'segments'} eq 'ARRAY')
-		or croak($type, "::new() called improperly");
-
-	  foreach my $segment (@{ $in{'segments'} }) {
-		ref $segment eq 'Video::PlaybackMachine::FillSegment'
-		  or croak($type, "::new: option 'segments' contains '$segment')");
-	  }
-  }
-  else {
-  	$in{'segments'} = [];
-  }
-
-  my $self = {
-	      segments => $in{segments},
-	      logger => Log::Log4perl->get_logger('Video::PlaybackMachine::Filler')
-	     };
-
-  bless $self, $type;
-}
+has 'segments' => ( is => 'ro' );
 
 ############################# Object Methods ##############################
 
@@ -130,7 +100,7 @@ sub next_fill {
 	my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
 	
   $heap->{'view'} 
-    or $self->{'logger'}->logconfess("Somehow called next_fill on us without calling start_fill");
+    or $self->logconfess("Somehow called next_fill on us without calling start_fill");
     
   my $time_to_next = $heap->{'view'}->get_time_to_next();
   
@@ -139,7 +109,7 @@ sub next_fill {
   	return;
   }
   
-  $self->{'logger'}->debug("Time to next: $time_to_next");
+  $self->debug("Time to next: $time_to_next");
 
   my ($segment, $time) = $heap->{'time_manager'}->get_segment( $time_to_next  )
     or do {
@@ -147,7 +117,7 @@ sub next_fill {
       return;
     };
 
-  $self->{'logger'}->debug("Starting fill segment name: ", $segment->get_name());
+  $self->debug("Starting fill segment name: ", $segment->get_name());
 
   $segment->get_producer()->start($time);
 
@@ -167,6 +137,8 @@ sub short_ready {
 		   @_[ARG0 .. $#_]);
 
 }
+
+no Moo;
 
 
 1;
