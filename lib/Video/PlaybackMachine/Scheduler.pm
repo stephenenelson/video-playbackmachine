@@ -449,7 +449,9 @@ sub shutdown {
         $kernel->alias_remove('Scheduler');
 
         # Terminate Watcher if defined
-        $kernel->post( $self->{'watcher_session'}, 'shutdown' );
+        if ( defined $self->{'watcher_session'} ) {
+        	$kernel->post( $self->{'watcher_session'}, 'shutdown' );
+        }
 
         # Terminate Player and Filler
         $kernel->post( $heap->{player_session}, 'shutdown' );
