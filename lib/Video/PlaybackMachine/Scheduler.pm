@@ -233,8 +233,8 @@ sub update {
     my ( $self, $kernel, $heap ) = @_[ OBJECT, KERNEL, HEAP ];
 
     # Clear all schedule alarms
-    $kernel->alarm_set('play_scheduled');
-    $kernel->alarm_set('warning_scheduled');
+    $kernel->alarm('play_scheduled');
+    $kernel->alarm('warning_scheduled');
 
     # If we're not playing
     if ( $self->get_mode() != PLAY_MODE ) {

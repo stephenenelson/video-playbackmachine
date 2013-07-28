@@ -114,7 +114,7 @@ sub stop {
 ## that we're idle.
 ##
 sub fill_done {
-  $_[KERNEL]->alarm_set('next_fill');
+  $_[KERNEL]->alarm('next_fill');
   delete $_[HEAP]->{'time_manager'};
   delete $_[HEAP]->{'view'};
   $_[KERNEL]->post('Scheduler', 'wait_for_scheduled');
