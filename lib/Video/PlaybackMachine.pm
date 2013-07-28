@@ -11,7 +11,6 @@ use POE::Kernel;
 
 use Video::PlaybackMachine::Config;
 use Video::PlaybackMachine::ScheduleTable::DB;
-use Video::PlaybackMachine::DatabaseWatcher;
 use Video::PlaybackMachine::FillSegment;
 use Video::PlaybackMachine::Filler;
 use Video::PlaybackMachine::Scheduler;
