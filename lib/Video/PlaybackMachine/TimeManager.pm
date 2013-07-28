@@ -9,11 +9,10 @@ package Video::PlaybackMachine::TimeManager;
 #### Keeps track of what has been played.
 ####
 
-use strict;
-use warnings;
+use Moo;
+
 use Carp;
 
-use Log::Log4perl;
 
 # TODO: I'm not sure that the implemented algorithm is correct. To get
 # the effects I'm looking for, basically the TimeManager should go
@@ -31,28 +30,29 @@ use Log::Log4perl;
 # higher priority, and computes the remainder.
 #
 
-############################# Class Constants #############################
+############################# Attributes #############################
+
+has 'current_seq' => (
+	is => 'rw',
+	default => 0
+);
+
+has 'seq_order' => (
+	is => 'ro',
+	default => sub { [] }
+);
+
+with 'Video::PlaybackMachine::Logger';
 
 ############################## Class Methods ##############################
 
-##
-## new()
-##
-## Arguments:
-##   SEGMENTS: list -- All available fill segments
-##
-## We assume that segments have unique sequential sequence numbers.
-##
-sub new {
+sub BUILDARGS {
   my $type = shift;
   my (@segments) = @_;
 
-  my $self = { };
-  $self->{seq_order} = [ sort { $a->sequence_order() <=> $b->sequence_order() } @segments ];
-  $self->{current_seq} = 0;
-  $self->{'logger'} = Log::Log4perl->get_logger('Video::PlaybackMachine::Filler::TimeManager');
-
-  bless $self, $type;
+  return {
+  	seq_order => [ sort { $a->sequence_order() <=> $b->sequence_order() } @segments ]
+  };
 }
 
 ############################# Object Methods ##############################
@@ -80,17 +80,19 @@ sub get_segment {
   # For each segment starting from current in display order
   foreach my $segment ( $self->_segments_left() ) {
 
-    $self->{'logger'}->debug("Considering segment ", $segment->name(),  " with time left $time_left");
+    $self->debug("Considering segment ", $segment->name(),  " with time left $time_left");
 
     # Move to next segment if we don't have time to play it
     my $time_remaining = $self->_seconds_remaining($segment, $time_left);
     $segment->is_available($time_remaining) or do {
-      $self->{'logger'}->debug("Segment ", $segment->name(), " is not available");
+      $self->debug("Segment ", $segment->name(), " is not available");
       next;
     };
 
     # Update whatever we should play next
-    $self->{current_seq} = ($self->{current_seq} + 1) % ($#{ $self->{seq_order} } + 1);
+    $self->current_seq(
+    	($self->current_seq + 1) % (scalar @{ $self->seq_order } )
+    );
 
     # Return the segment and time remaining
     return ($segment, $time_remaining);
@@ -106,7 +108,7 @@ sub get_segment {
 ##
 sub _segments_left {
   my $self = shift;
-  return @{$self->{seq_order}}[ $self->{current_seq} ... $#{ $self->{seq_order} } ];
+  return @{ $self->seq_order }[ $self->{current_seq} ... $#{ $self->{seq_order} } ];
 }
 
 ##
@@ -141,5 +143,6 @@ sub _seconds_remaining {
 
 }
 
+no Moo;
 
 1;
