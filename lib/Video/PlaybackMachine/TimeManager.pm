@@ -85,7 +85,7 @@ sub get_segment {
     # Move to next segment if we don't have time to play it
     my $time_remaining = $self->_seconds_remaining($segment, $time_left);
     $segment->is_available($time_remaining) or do {
-      $self->{'logger'}->debug("Skipping segment ", $segment->get_name());
+      $self->{'logger'}->debug("Segment ", $segment->get_name(), " is not available");
       next;
     };
 
