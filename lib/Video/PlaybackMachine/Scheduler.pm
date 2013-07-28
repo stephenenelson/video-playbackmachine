@@ -356,7 +356,8 @@ sub play_scheduled {
     if (   ( $self->get_mode() == PLAY_MODE )
         && ( $self->{player}->get_status() == PLAYER_STATUS_PLAY ) )
     {
-
+		$self->logger()->warn("Skipped playing " . $entry->mrl() . " since already playing");
+		
         return;
 
     }    # End if we're playing something scheduled
