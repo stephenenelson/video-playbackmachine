@@ -6,11 +6,12 @@ package Video::PlaybackMachine::FillProducer::NextSchedule;
 #### $Revision$
 ####
 
-use strict;
-use warnings;
+use Moo;
+
 use Carp;
 
-use base 'Video::PlaybackMachine::FillProducer::TextFrame';
+extends 'Video::PlaybackMachine::FillProducer::TextFrame';
+
 use Video::PlaybackMachine::FillProducer::TextFrame::TextTable;
 use POE;
 
@@ -23,18 +24,6 @@ our $Max_Entries = 5;
 our $Border = 20;
 
 ############################## Class Methods ##############################
-
-##
-## new()
-##
-## Arguments: (hash)
-##  time => int -- time in seconds image should be displayed
-##
-sub new {
-  my $type = shift;
-  my $self =  $type->SUPER::new(@_);
-  return $self;
-}
 
 
 
