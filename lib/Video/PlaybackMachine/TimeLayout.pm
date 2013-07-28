@@ -12,18 +12,10 @@ package Video::PlaybackMachine::TimeLayout;
 ###
 ####
 
-use strict;
-use warnings;
-use Carp;
+use Moo::Role;
 
-############################# Class Constants #############################
+requires qw/min_time preferred_time/;
 
-############################## Class Methods ##############################
-
-############################# Object Methods ##############################
-
-sub min_time { }
-
-sub preferred_time { }
+no Moo::Role;
 
 1;
