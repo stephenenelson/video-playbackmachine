@@ -1,17 +1,10 @@
 package Video::PlaybackMachine::FillProducer::StaticFrame;
 
-use strict;
-use warnings;
+use Moo;
 
-use base 'Video::PlaybackMachine::FillProducer::TextFrame';
+extends 'Video::PlaybackMachine::FillProducer::TextFrame';
 
-sub new {
-  my ($type, %in) = @_;
-
-  my $self = $type->SUPER::new(%in);
-
-  $self->{'static_text'} = $in->{'static_text'};
-}
+has 'static_text' => ( 'is' => 'ro' );
 
 ##
 ## add_text()
@@ -23,3 +16,7 @@ sub add_text {
 
   $self->write_centered( $self->{'static_text'} );
 }
+
+no Moo;
+
+1;

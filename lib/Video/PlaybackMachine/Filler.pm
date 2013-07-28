@@ -117,9 +117,9 @@ sub next_fill {
       return;
     };
 
-  $self->debug("Starting fill segment name: ", $segment->get_name());
+  $self->debug("Starting fill segment name: ", $segment->name());
 
-  $segment->get_producer()->start($time);
+  $segment->producer()->start($time);
 
 }
 

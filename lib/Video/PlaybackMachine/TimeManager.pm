@@ -48,7 +48,7 @@ sub new {
   my (@segments) = @_;
 
   my $self = { };
-  $self->{seq_order} = [ sort { $a->get_sequence() <=> $b->get_sequence() } @segments ];
+  $self->{seq_order} = [ sort { $a->sequence_order() <=> $b->sequence_order() } @segments ];
   $self->{current_seq} = 0;
   $self->{'logger'} = Log::Log4perl->get_logger('Video::PlaybackMachine::Filler::TimeManager');
 
@@ -80,12 +80,12 @@ sub get_segment {
   # For each segment starting from current in display order
   foreach my $segment ( $self->_segments_left() ) {
 
-    $self->{'logger'}->debug("Considering segment ", $segment->get_name(),  " with time left $time_left");
+    $self->{'logger'}->debug("Considering segment ", $segment->name(),  " with time left $time_left");
 
     # Move to next segment if we don't have time to play it
     my $time_remaining = $self->_seconds_remaining($segment, $time_left);
     $segment->is_available($time_remaining) or do {
-      $self->{'logger'}->debug("Segment ", $segment->get_name(), " is not available");
+      $self->{'logger'}->debug("Segment ", $segment->name(), " is not available");
       next;
     };
 
@@ -127,14 +127,14 @@ sub _seconds_remaining {
 
   my $time_remaining = $time_left_in_break;
   foreach my $segment (
-			   sort {$a->get_priority() <=> $b->get_priority()}
-			   grep { $_->get_priority() < $current_segment->get_priority() }
+			   sort {$a->priority_order() <=> $b->priority_order()}
+			   grep { $_->priority_order() < $current_segment->priority_order() }
 			   $self->_segments_left()
 			  ) 
     {
       $time_remaining > 0 or return 0;
       $segment->is_available($time_remaining) or next;
-      $time_remaining -= $segment->get_producer()->time_layout()->preferred_time($time_remaining);
+      $time_remaining -= $segment->producer()->time_layout()->preferred_time($time_remaining);
     }
 
   return $time_remaining;
