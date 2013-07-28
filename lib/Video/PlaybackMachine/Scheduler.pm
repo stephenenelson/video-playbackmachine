@@ -175,6 +175,12 @@ sub get_time_to_next {
     }
 }
 
+sub logger {
+	my $self = shift;
+	
+	return $self->{'logger'};
+}
+
 ############################# Session Methods #############################
 
 ##
@@ -291,8 +297,7 @@ sub finished {
     $self->{mode} = IDLE_MODE;
 
     # Log the item that finished playing
-    $kernel->post( 'Logger', 'log_played_movie', $request->[0], $request->[1],
-        CORE::time(), $response->[0] );
+    $self->logger()->info("Movie played: ", $response->[0]);
 
 	# If there's something else scheduled
 	if ( defined $self->get_next_entry($now) ) {
