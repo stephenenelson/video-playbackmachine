@@ -8,11 +8,11 @@ has 'image' => ( 'is' => 'ro' );
 
 has 'border' => ( 'is' => 'ro' );
 
-has 'rows' => ( 'is' => 'ro' );
+has 'rows' => ( 'is' => 'ro', default => sub { return [] } );
 
 has 'height' => ( 'is' => 'rw', 'default' => 0 );
 
-has 'width' => ( 'is' => 'ro', 'default' => 0 );
+has 'width' => ( 'is' => 'rw', 'default' => 0 );
 
 sub add_row {
   my $self = shift;
@@ -25,7 +25,7 @@ sub add_row {
 							      @columns);
   
   # Return undef if we're too long (vertically) for the screen
-  my $new_height = $self->height() + $row->height() + $self->border();
+  my $new_height = $self->height() + $row->get_height() + $self->border();
   $new_height > $self->image()->get_height()
     and return;
   $self->height( $new_height );
