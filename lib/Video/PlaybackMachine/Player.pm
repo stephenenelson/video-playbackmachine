@@ -90,7 +90,9 @@ sub _start {
     or croak "Unable to open video stream";
   $_[OBJECT]->{'stream'} = $s;
   $_[HEAP]->{'stream_queue'} =
-    Video::PlaybackMachine::Player::EventWheel->new($s);
+    Video::PlaybackMachine::Player::EventWheel->new({
+    	'stream' => $s
+    });
   my $fq =
     Video::PlaybackMachine::EventWheel::FullScreen->new(
     	'source' => $display, 
