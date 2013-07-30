@@ -138,8 +138,6 @@ sub _producer_table {
             font_path => [ $self->get('font_dir') ],
         ),
 
-        # Short film segment
-        shorts => Video::PlaybackMachine::FillProducer::FillShort->new($table),
 
     };
 
