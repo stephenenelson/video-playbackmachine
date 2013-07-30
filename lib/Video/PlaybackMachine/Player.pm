@@ -7,8 +7,9 @@ package Video::PlaybackMachine::Player;
 #### based on events.
 ####
 
-use strict;
-use base 'Exporter';
+use Moo;
+
+use Exporter 'import';
 our @EXPORT_OK = qw(PLAYER_STATUS_STOP PLAYER_STATUS_PLAY PLAYER_STATUS_STILL
                     PLAYBACK_OK PLAYBACK_ERROR PLAYBACK_STOPPED);
 
@@ -19,8 +20,9 @@ use Video::Xine::Stream qw/:status_constants/;
 use Video::PlaybackMachine::EventWheel::FullScreen;
 use Video::PlaybackMachine::Player::EventWheel;
 use Video::PlaybackMachine::Config;
-use Log::Log4perl;
 use Carp;
+
+with 'Video::PlaybackMachine::Logger';
 
 ############################# Class Constants ################################
 
@@ -48,16 +50,6 @@ use constant PLAYBACK_TYPE_MOVIE => 1;
 ## Returns a new instance of Player. Note that the session is not created
 ## until you call spawn().
 ##
-sub new {
-  my $type = shift;
-
-  my $self = {
-	      logger => Log::Log4perl->get_logger('Video.PlaybackMachine.Player'),
-	     };
-
-
-  bless $self, $type;
-}
 
 ############################## Session Methods ###############################
 
@@ -123,7 +115,7 @@ sub play {
 
   defined $offset or $offset = 0;
 
-  my $log = $_[OBJECT]{'logger'};
+  my $log = $self->logger();
 
 	# TODO Remove fatal
   @files or die "No files specified! stopped";
@@ -196,14 +188,14 @@ sub stop {
 ##
 sub play_still {
   my ($self, $kernel, $heap, $still, $callback, $time) = @_[OBJECT, KERNEL, HEAP, ARG0, ARG1, ARG2];
-  my $log = $self->{'logger'};
+  my $log = $self->logger();
   if ($self->{'stream'}->get_status() == XINE_STATUS_PLAY
   	&& $heap->{'playback_type'} == PLAYBACK_TYPE_MOVIE 
   ) {
   		$log->error("Attempted to show still '$still' while playing a movie");
   		return;
   }
-  $log->debug("Showing still '$_[ARG0]'");
+  $log->debug("Showing still '$still'");
   eval {
 	  # Clear the screen
   	$heap->{'display'}->clearWindow( $heap->{'window'} );
@@ -254,7 +246,7 @@ sub play_music {
   # If there's a movie running, let it play
   if ($self->get_status() == PLAYER_STATUS_PLAY) {
     if ($heap->{'playback_type'} == PLAYBACK_TYPE_MOVIE) {
-      $self->{'logger'}->warn("Attempted to play '$song_file' while a movie is playing");
+      $self->warn("Attempted to play '$song_file' while a movie is playing");
       $callback->($self->{'stream'}, PLAYBACK_ERROR);
       return;
     }
@@ -263,11 +255,11 @@ sub play_music {
     }
   }
   else {
-    $self->{'logger'}->debug("Playing music file '$song_file'");
+    $self->debug("Playing music file '$song_file'");
     $heap->{'stream_queue'}->clear_events();
     $self->{'stream'}->open($song_file)
       or do {
-	$self->{'logger'}->warn("Unable to play '$song_file'");
+	$self->warn("Unable to play '$song_file'");
 	$callback->($self->{'stream'}, PLAYBACK_ERROR);
 	return;
       };
@@ -321,7 +313,7 @@ sub get_status {
   my $heap = $session->get_heap();
 
   if (! defined $self->{'stream'} ) {
-    $self->{'logger'}->fatal("Undefined stream! Called on session $session, caller " . join(' ', caller()) );
+    $self->fatal("Undefined stream! Called on session $session, caller " . join(' ', caller()) );
     confess("Undefined stream!");
   }
 
@@ -331,6 +323,7 @@ sub get_status {
   return PLAYER_STATUS_STOP;
 }
 
+no Moo;
 
 1;
 
