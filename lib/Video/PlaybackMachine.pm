@@ -15,7 +15,6 @@ use Video::PlaybackMachine::FillSegment;
 use Video::PlaybackMachine::Filler;
 use Video::PlaybackMachine::Scheduler;
 use Video::PlaybackMachine::FillProducer::SlideShow;
-use Video::PlaybackMachine::FillProducer::FillShort;
 use Video::PlaybackMachine::FillProducer::StillFrame;
 use Video::PlaybackMachine::FillProducer::UpNext;
 use Video::PlaybackMachine::FillProducer::NextSchedule;
