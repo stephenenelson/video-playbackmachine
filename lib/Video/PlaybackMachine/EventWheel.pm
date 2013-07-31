@@ -55,6 +55,7 @@ sub session_cleanup {
 sub set_handler {
   my $self = shift;
   my ($event_id, $callback) = @_;
+  
   $self->handlers->{$event_id} = $callback;
 }
 
@@ -91,7 +92,7 @@ sub get_events {
     $self->logger->debug("Received event: ", $event->get_type(), "\n");
     if ( my $handler = $self->get_handler( $event->get_type() ) ) {
       $self->logger->debug("Invoking handler for ", $event->get_type(), "\n");
-      $handler->($self->{'source'}, $event);
+      $handler->($self->source(), $event);
     }
   }
 
