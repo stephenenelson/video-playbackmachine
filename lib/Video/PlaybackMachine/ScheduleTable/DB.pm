@@ -6,8 +6,7 @@ package Video::PlaybackMachine::ScheduleTable::DB;
 #### This module is used to access the ScheduleTable.
 ####
 
-use strict;
-use warnings;
+use Moo;
 
 use Carp;
 
@@ -32,21 +31,19 @@ sub new {
     bless $self, $type;
 }
 
+has 'schedule_name' => ( is => 'ro' );
+
+has 'schema' => ( is => 'lazy' );
+
+sub _build_schema {
+	my $self = shift;
+	
+	return Video::PlaybackMachine::DB->schema();
+}
+
 ############################## Object Methods ######################################
 
 sub getDbh { return Video::PlaybackMachine::DB->db(); }
-
-sub schema {
-	my $self = shift;
-	
-	return $self->{'schema'};
-}
-
-sub schedule_name {
-	my $self = shift;
-	
-	return $self->{'schedule_name'};
-}
 
 ##
 ## get_entries_between()
@@ -171,5 +168,7 @@ sub get_first_entry {
 }
 
 1;
+
+no Moo;
 
 __END__
