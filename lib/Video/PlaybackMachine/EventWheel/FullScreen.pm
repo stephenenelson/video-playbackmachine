@@ -26,7 +26,9 @@ sub get_event {
 
 # Expose is 12
 sub set_expose_handler {
-  $_[0]->set_handler(12, $_[1]);
+	my ($self, $handler) = @_;
+
+  $self->set_handler(12, $handler);
 }
 
 # TODO: Make is_running check the display handle
