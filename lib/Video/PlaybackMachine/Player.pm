@@ -51,50 +51,104 @@ use constant PLAYBACK_TYPE_MOVIE => 1;
 ## until you call spawn().
 ##
 
+has 'xine' => ( is => 'lazy' );
+
+has 'display' => ( is => 'lazy' );
+
+has 'x_display' => ( is => 'ro', default => Video::PlaybackMachine::Config->config()->x_display() );
+
+has 'window' => ( is => 'lazy' );
+
+has 'xine_vo' => ( is => 'lazy' );
+
+has 'stream' => ( is => 'lazy' );
+
+has 'playback_type' => ( is => 'rw' );
+
 ############################## Session Methods ###############################
+
+sub _build_xine {
+	my $self = shift;
+	
+	return Video::Xine->new();
+}
+
+sub _build_display {
+	my $self = shift;
+	
+ return X11::FullScreen::Display->new( $self->x_display() )
+ 	or die "Couldn't create display";
+	
+}
+
+sub _build_window {
+	my $self = shift;
+		 
+	 return $self->display()->createWindow();
+}
+
+sub _build_xine_vo {
+	my $self = shift;
+	
+	my $display = $self->display();
+	
+  my $x11_visual = Video::Xine::Util::make_x11_visual($display,
+						      $display->getDefaultScreen(),
+						      $self->window(),
+						      $display->getWidth(),
+						      $display->getHeight(),
+						      $display->getPixelAspect()
+						     );
+	
+
+  my $driver = Video::Xine::Driver::Video->new($self->xine,"auto",1,$x11_visual, $display);
+
+	return $driver;
+}
+
+sub _build_stream {
+	my $self = shift;
+	
+	my $stream = $self->xine()->stream_new( undef, $self->xine_vo() )
+		or croak "Unable to open video stream";
+
+	return $stream;
+}
 
 ##
 ## On session start, initializes Xine and prepares it to start playing.
 ##
 sub _start {
-  my $kernel = $_[KERNEL];
+  my ($self, $kernel, $heap) = @_[OBJECT, KERNEL, HEAP];
 
   $kernel->alias_set('Player');
-  my $x_display = Video::PlaybackMachine::Config->config()->x_display();
-  my $display = X11::FullScreen::Display->new($x_display);
-  $_[HEAP]->{'display'} = $display;
-  $_[HEAP]->{'window'} = $display->createWindow();
-  $display->sync();
-  my $xine = Video::Xine->new();
-  my $config = Video::PlaybackMachine::Config->config();
-  $xine->set_param(XINE_ENGINE_PARAM_VERBOSITY, $config->player_verbose());
-  $_[HEAP]->{'xine'} = $xine;
-  my $x11_visual = Video::Xine::Util::make_x11_visual($display,
-						      $display->getDefaultScreen(),
-						      $_[HEAP]->{'window'},
-						      $display->getWidth(),
-						      $display->getHeight(),
-						      $display->getPixelAspect()
-						     );
-	# TODO Move "auto" to config file
-  my $driver = Video::Xine::Driver::Video->new($xine,"auto",1,$x11_visual, $display);
-  my $s = $xine->stream_new(undef, $driver)
-    or croak "Unable to open video stream";
-  $_[OBJECT]->{'stream'} = $s;
-  $_[HEAP]->{'stream_queue'} =
+
+  $self->display()->sync();
+  
+   $heap->{'stream_queue'} =
     Video::PlaybackMachine::Player::EventWheel->new({
-    	'stream' => $s
+    	'stream' => $self->stream()
     });
+    
   my $fq =
     Video::PlaybackMachine::EventWheel::FullScreen->new(
-    	'source' => $display, 
-    	'window' => $_[HEAP]->{'window'}
+    	'source' => $self->display(), 
+    	'window' => $self->window()
     );
-  $fq->set_expose_handler(
-			  sub { $s->get_video_port()->send_gui_data(XINE_GUI_SEND_EXPOSE_EVENT, $_[1]); } );
+
+#   $fq->set_expose_handler(
+#   	sub {  	
+# 		$self->stream()
+# 			->get_video_port()
+# 				->send_gui_data(
+# 					XINE_GUI_SEND_EXPOSE_EVENT, $_[1]); 
+# 	}
+#   );
   $fq->spawn();
 
-  $_[HEAP]->{'fullscreen_queue'} = $fq
+  $heap->{'fullscreen_queue'} = $fq;
+  
+  return;
 
 }
 
@@ -121,26 +175,28 @@ sub play {
   @files or die "No files specified! stopped";
 
   # Stop if we're playing
-  if ( $self->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
-    $self->{'stream'}->stop();
-    $self->{'stream'}->close();
+  if ( $self->stream()->get_status() == XINE_STATUS_PLAY ) {
+    $self->stream()->stop();
+    $self->stream()->close();
   }
   
   # Clear out any previous events
   $heap->{'stream_queue'}->clear_events();
   
   # Clear the screen
-  $heap->{'display'}->clearWindow( $heap->{'window'} );
+  $self->clear_window();
 
   $log->info("Playing $files[0]");
 
-  my $s = $_[OBJECT]->{'stream'};
+  my $s = $self->stream();
+  
   $s->open($files[0])
     or do {
       $log->error("Unable to open '$files[0]': Error " . $s->get_error());
       $postback->(PLAYBACK_ERROR);
       return;
     };
+    
   $s->play(0,$offset * 1000)
     or do {
       $log->error("Unable to play '$files[0]': Error " . $s->get_error());
@@ -150,7 +206,7 @@ sub play {
 
   # Tell the system to refresh the window
   # Drawable changed
-  $s->get_video_port()->send_gui_data(XINE_GUI_SEND_DRAWABLE_CHANGED, $heap->{'window'});
+  $s->get_video_port()->send_gui_data(XINE_GUI_SEND_DRAWABLE_CHANGED, $self->window() );
   $s->get_video_port()->send_gui_data(XINE_GUI_SEND_VIDEOWIN_VISIBLE, 1);
 
   # Spawn a watcher to call the postback after the fact
@@ -158,7 +214,7 @@ sub play {
   $heap->{'stream_queue'}->spawn();
 
 			     
-  $heap->{'playback_type'} = PLAYBACK_TYPE_MOVIE;
+  $self->playback_type(PLAYBACK_TYPE_MOVIE);
 
 }
 
@@ -168,13 +224,23 @@ sub play {
 ## Stops the currently-playing movie.
 ##
 sub stop {
+	my ($self) = $_[OBJECT];
+
   # Stop if we're playing
-  if ( $_[OBJECT]->{'stream'}->get_status() == XINE_STATUS_PLAY ) {
-    $_[OBJECT]->{'stream'}->stop();
+  if ( $self->stream()->get_status() == XINE_STATUS_PLAY ) {
+    $self->stream()->stop();
   }
  
-  $_[HEAP]->{'display'}->clearWindow( $_[HEAP]->{'window'} ); 
+  $self->clear_window();
   
+}
+
+sub clear_window {
+	my $self = shift;
+	
+  $self->display()->clearWindow( $self->window() ); 
+
+	return;	
 }
 
 ##
@@ -189,8 +255,8 @@ sub stop {
 sub play_still {
   my ($self, $kernel, $heap, $still, $callback, $time) = @_[OBJECT, KERNEL, HEAP, ARG0, ARG1, ARG2];
   my $log = $self->logger();
-  if ($self->{'stream'}->get_status() == XINE_STATUS_PLAY
-  	&& $heap->{'playback_type'} == PLAYBACK_TYPE_MOVIE 
+  if ($self->stream()->get_status() == XINE_STATUS_PLAY
+  	&& $self->playback_type() == PLAYBACK_TYPE_MOVIE 
   ) {
   		$log->error("Attempted to show still '$still' while playing a movie");
   		return;
@@ -198,9 +264,9 @@ sub play_still {
   $log->debug("Showing still '$still'");
   eval {
 	  # Clear the screen
-  	$heap->{'display'}->clearWindow( $heap->{'window'} );
-
-    $heap->{'display'}->displayStill($heap->{'window'}, $still);
+	  $self->clear_window();
+	  
+    $self->display()->displayStill($self->window(), $still);
   };
   if ($@) {
     $log->error("Error displaying still '$still': $@");
@@ -245,9 +311,9 @@ sub play_music {
 
   # If there's a movie running, let it play
   if ($self->get_status() == PLAYER_STATUS_PLAY) {
-    if ($heap->{'playback_type'} == PLAYBACK_TYPE_MOVIE) {
+    if ($self->playback_type() == PLAYBACK_TYPE_MOVIE) {
       $self->warn("Attempted to play '$song_file' while a movie is playing");
-      $callback->($self->{'stream'}, PLAYBACK_ERROR);
+      $callback->($self->stream(), PLAYBACK_ERROR);
       return;
     }
     else {
@@ -257,16 +323,16 @@ sub play_music {
   else {
     $self->debug("Playing music file '$song_file'");
     $heap->{'stream_queue'}->clear_events();
-    $self->{'stream'}->open($song_file)
+    $self->stream()->open($song_file)
       or do {
 	$self->warn("Unable to play '$song_file'");
-	$callback->($self->{'stream'}, PLAYBACK_ERROR);
+	$callback->($self->stream(), PLAYBACK_ERROR);
 	return;
       };
-    $self->{'stream'}->play(0,0);
+    $self->stream()->play(0,0);
     $heap->{'stream_queue'}->set_stop_handler($callback);
     $heap->{'stream_queue'}->spawn();
-    $heap->{'playback_type'} = PLAYBACK_TYPE_MUSIC;
+    $self->playback_type( PLAYBACK_TYPE_MUSIC );
   }
 }
 
@@ -312,12 +378,7 @@ sub get_status {
   my $session = $poe_kernel->get_active_session();
   my $heap = $session->get_heap();
 
-  if (! defined $self->{'stream'} ) {
-    $self->fatal("Undefined stream! Called on session $session, caller " . join(' ', caller()) );
-    confess("Undefined stream!");
-  }
-
-  $self->{'stream'}->get_status() == XINE_STATUS_PLAY
+  $self->stream()->get_status() == XINE_STATUS_PLAY
     and return PLAYER_STATUS_PLAY;
 
   return PLAYER_STATUS_STOP;
