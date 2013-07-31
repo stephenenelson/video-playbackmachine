@@ -23,7 +23,11 @@ with 'Video::PlaybackMachine::Logger';
 
 ############################# Parameters #############################
 
-has 'segments' => ( is => 'ro' );
+has 'segments' => ( is => 'ro', default => sub { [] } );
+
+has 'time_manager' => ( is => 'rw' );
+
+has 'scheduler' => ( is => 'rw' );
 
 ############################# Object Methods ##############################
 
@@ -54,18 +58,19 @@ sub spawn {
 ## Called to start the Filler filling.
 ##
 sub start_fill {
+	my ($self, $heap, $kernel, $scheduler) = @_[OBJECT, HEAP, KERNEL, ARG0];
+
 
   # Initialize a TimeManager with our FillSegments
-  $_[HEAP]{'time_manager'} = Video::PlaybackMachine::TimeManager->new( @{ $_[OBJECT]{'segments'} } );
+  $self->reset_time_manager();
 
-  # Store the current schedule in the heap
-  $_[HEAP]{'view'} = $_[ARG0]
-        or $_[OBJECT]->logconfess('ARG0 required');
+  # Store the current schedule
+  $self->scheduler($scheduler);
 
-  $_[OBJECT]->debug("Filling, ttn=", duration($_[ARG0]->get_time_to_next()),"\n");
+  $self->debug("Filling, ttn=", duration($_[ARG0]->get_time_to_next()),"\n");
 
   # View the first segment
-  $_[KERNEL]->yield('next_fill');
+  $kernel->yield('next_fill');
 
 }
 
@@ -74,6 +79,17 @@ sub stop {
   foreach (keys %{$_[HEAP]}) {
     delete $_[HEAP]->{$_};
   }
+}
+
+sub reset_time_manager {
+	my ($self) = @_;
+	
+	$self->time_manager( 
+		Video::PlaybackMachine::TimeManager
+  			->new( @{ $self->segments } ) 
+  		);
+  	
+  	return;
 }
 
 ##
@@ -85,8 +101,6 @@ sub stop {
 ##
 sub fill_done {
   $_[KERNEL]->alarm('next_fill');
-  delete $_[HEAP]->{'time_manager'};
-  delete $_[HEAP]->{'view'};
   $_[KERNEL]->post('Scheduler', 'wait_for_scheduled');
 }
 
@@ -99,10 +113,10 @@ sub fill_done {
 sub next_fill {
 	my ($self, $heap, $kernel) = @_[OBJECT, HEAP, KERNEL];
 	
-  $heap->{'view'} 
+  $self->scheduler() 
     or $self->logconfess("Somehow called next_fill on us without calling start_fill");
     
-  my $time_to_next = $heap->{'view'}->get_time_to_next();
+  my $time_to_next = $self->scheduler()->get_time_to_next();
   
   if (! defined $time_to_next ) {
   	$kernel->yield('fill_done');
@@ -111,7 +125,7 @@ sub next_fill {
   
   $self->debug("Time to next: $time_to_next");
 
-  my ($segment, $time) = $heap->{'time_manager'}->get_segment( $time_to_next  )
+  my ($segment, $time) = $self->time_manager()->get_segment( $time_to_next  )
     or do {
       $kernel->yield('fill_done');
       return;
