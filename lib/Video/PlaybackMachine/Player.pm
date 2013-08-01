@@ -138,14 +138,12 @@ sub _start {
         'window' => $self->window()
     );
 
-    #   $fq->set_expose_handler(
-    #   	sub {
-    # 		$self->stream()
-    # 			->get_video_port()
-    # 				->send_gui_data(
-    # 					XINE_GUI_SEND_EXPOSE_EVENT, $_[1]);
-    # 	}
-    #   );
+    $fq->set_expose_handler(
+        sub {
+            $self->stream()->get_video_port()
+              ->send_gui_data( XINE_GUI_SEND_EXPOSE_EVENT, $_[1] );
+        }
+    );
     $fq->spawn();
 
     $heap->{'fullscreen_queue'} = $fq;
