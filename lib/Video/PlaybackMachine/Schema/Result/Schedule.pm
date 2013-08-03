@@ -23,4 +23,10 @@ __PACKAGE__->has_many(
   { cascade_copy => 1, cascade_delete => 1 },
 );
 
+sub schedule_entries_in_order {
+	my $self = shift;
+	
+	return $self->search_related('schedule_entries', {}, { 'order_by' => 'start_time' });
+}
+
 1;
