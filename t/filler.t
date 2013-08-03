@@ -17,7 +17,6 @@ use Test::MockObject;
 
 use Video::PlaybackMachine::MockScheduleTable;
 use Video::PlaybackMachine::FillSegment;
-use Video::PlaybackMachine::ScheduleView;
 use Video::PlaybackMachine::Schema;
 use Video::PlaybackMachine::ScheduleTable::DB;
 use Video::PlaybackMachine::Scheduler;
@@ -98,7 +97,7 @@ sub ok_time {
 sub make_scheduler {
   my ($filler) = @_;
   
-  # Create a ScheduleView with some programming starting in 5 seconds
+  # Create a Scheduler with some programming starting in 5 seconds
   my $sched_table = make_temp_schedule();
   add_entry($sched_table, 5, 1);
   my $scheduler = Video::PlaybackMachine::Scheduler->new(
