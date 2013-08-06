@@ -100,12 +100,28 @@ sub scan {
 
 	my $movie_info_rs = $self->schema()->resultset('MovieInfo');
 	
+	my $schedule_end_rs = $self->schema->resultset('ScheduleEntryEnd');
+	
+	my $schedule_entry_rs = $self->schema->resultset('ScheduleEntry');
+	
 	my $run_sub = sub {
 		$movie_info_rs->delete();
 		$movie_info_rs->populate([
 			[ 'duration', 'title', 'mrl' ],
 			@movie_info
 		]);
+		
+		$schedule_end_rs->delete();
+		
+		while ( my $entry = $schedule_entry_rs->next() ) {
+			my $movie = $movie_info_rs->find( { 'mrl' => $entry->mrl() } );
+			if (! defined $movie ) {
+				warn "No Movie found for MRL '" . $entry->mrl . "'\n";
+				next;
+			}
+			$entry->create_related('schedule_entry_end', { stop_time => $entry->start_time + $movie->duration() });
+		}
+	
 	};
 	
 	$self->schema->txn_do($run_sub);
