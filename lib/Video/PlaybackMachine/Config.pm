@@ -45,6 +45,8 @@ BEGIN {
         $config->define( 'stills', { ARGS => '=s' } );
 
         $config->define( 'music', { ARGS => '=s' } );
+        
+        $config->define( 'movies', { ARGS => '=s' } );
 
         $config->define( 'font_dir', { ARGS => '=s' } );
 
@@ -94,6 +96,8 @@ BEGIN {
         $config->define( 'time_tick=i', { DEFAULT => 5 } );
 
         $config->define( 'daemonize!', { DEFAULT => 0 } );
+        
+        $config->define( 'time_zone', { DEFAULT => 'America/Los_Angeles' } );
 
         $config->getopt();
 
