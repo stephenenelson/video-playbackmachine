@@ -71,7 +71,7 @@ MAIN: {
     my $ao = Video::Xine::Driver::Audio->new($xine, 'none');
     my $stream = $xine->stream_new($ao, $vo);
 	
-	while ( my $row = $csv->getline( $fh ) ) {
+	ROW: while ( my $row = $csv->getline( $fh ) ) {
 		my ($start_str, $mrl) = @$row;
 		length($start_str) or next;
 		
@@ -88,6 +88,15 @@ MAIN: {
 		$stream->close();
 		
 		my $length_secs = ceil( $length_millis / 1000 );
+		
+		my @conflicts = $schedule->movie_conflicts( $start_epoch, $length_secs );
+		
+		if ( scalar @conflicts ) {
+			print STDERR "Movie '$title' conflicts with: ",
+				join(', ', map { $_->mrl() } @conflicts ),
+				"\n";
+			next ROW;
+		}
 		
 		my $entry = $entry_rs->create({ 'schedule_id' => $schedule->schedule_id, 
 							'mrl' => $mrl,
