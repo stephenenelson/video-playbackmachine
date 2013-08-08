@@ -29,4 +29,29 @@ sub schedule_entries_in_order {
 	return $self->search_related('schedule_entries', {}, { 'order_by' => 'start_time' });
 }
 
+sub movie_conflicts {
+	my $self = shift;
+	my ($new_start, $duration) = @_;
+	
+	my $new_stop = $new_start + $duration;
+	
+	return $self->search_related('schedule_entries',
+		 [
+				{ 
+					'-and' => 
+						[ 'start_time' => { '>=', $new_start },
+				          'start_time' => { '<=', $new_stop }
+				        ]
+				},
+				{
+				  'start_time' => { '<=', $new_start },
+				  'schedule_entry_end.stop_time' => { '>=', $new_start }
+				}
+		],
+		{
+			join => 'schedule_entry_end'
+		}
+	);
+};
+
 1;
