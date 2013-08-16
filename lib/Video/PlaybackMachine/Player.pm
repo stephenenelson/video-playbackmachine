@@ -20,6 +20,7 @@ use Video::Xine::Stream qw/:status_constants/;
 use Video::PlaybackMachine::EventWheel::FullScreen;
 use Video::PlaybackMachine::Player::EventWheel;
 use Video::PlaybackMachine::Config;
+use Video::Xine::Util 'make_x11_fs_visual';
 use Carp;
 
 with 'Video::PlaybackMachine::Logger';
@@ -53,14 +54,16 @@ use constant PLAYBACK_TYPE_MOVIE => 1;
 
 has 'xine' => ( is => 'lazy' );
 
-has 'display' => ( is => 'lazy' );
+has 'fullscreen' => ( 
+	is => 'lazy',
+	isa => sub { $_[0]->isa('X11::FullScreen') or die; },
+	handles => [ 'window' ]
+);
 
 has 'x_display' => (
     is      => 'ro',
     default => Video::PlaybackMachine::Config->config()->x_display()
 );
-
-has 'window' => ( is => 'lazy' );
 
 has 'xine_vo' => ( is => 'lazy' );
 
@@ -76,34 +79,24 @@ sub _build_xine {
     return Video::Xine->new();
 }
 
-sub _build_display {
+sub _build_fullscreen {
     my $self = shift;
 
-    return X11::FullScreen::Display->new( $self->x_display() )
-      or die "Couldn't create display";
+    my $fullscreen = X11::FullScreen->new( $self->x_display() );
+    $fullscreen->show();
+    return $fullscreen;
 
-}
-
-sub _build_window {
-    my $self = shift;
-
-    return $self->display()->createWindow();
 }
 
 sub _build_xine_vo {
     my $self = shift;
-
-    my $display = $self->display();
-
+    
     my $x11_visual =
-      Video::Xine::Util::make_x11_visual( $display,
-        $display->getDefaultScreen(),
-        $self->window(), $display->getWidth(), $display->getHeight(),
-        $display->getPixelAspect() );
+      Video::Xine::Util::make_x11_fs_visual($self->fullscreen);
 
     my $driver =
       Video::Xine::Driver::Video->new( $self->xine, "auto", 1, $x11_visual,
-        $display );
+        $self->fullscreen() );
 
     return $driver;
 }
@@ -125,7 +118,7 @@ sub _start {
 
     $kernel->alias_set('Player');
 
-    $self->display()->sync();
+    $self->fullscreen()->sync();
 
     $heap->{'stream_queue'} = Video::PlaybackMachine::Player::EventWheel->new(
         {
@@ -134,8 +127,7 @@ sub _start {
     );
 
     my $fq = Video::PlaybackMachine::EventWheel::FullScreen->new(
-        'source' => $self->display(),
-        'window' => $self->window()
+        'source' => $self->fullscreen()
     );
 
     $fq->set_expose_handler(
@@ -239,7 +231,7 @@ sub stop {
 sub clear_window {
     my $self = shift;
 
-    $self->display()->clearWindow( $self->window() );
+    $self->fullscreen()->clear();
 
     return;
 }
@@ -268,7 +260,7 @@ sub play_still {
         # Clear the screen
         $self->clear_window();
 
-        $self->display()->displayStill( $self->window(), $still );
+        $self->fullscreen()->display_still( $still );
     };
     if ($@) {
         $log->error("Error displaying still '$still': $@");

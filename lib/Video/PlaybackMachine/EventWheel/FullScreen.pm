@@ -6,11 +6,6 @@ use X11::FullScreen;
 
 with 'Video::PlaybackMachine::EventWheel';
 
-has 'window' => (
-	'is' => 'ro',
-	'required' => 1
-);
-
 ######################### Class Methods #########################
 
 
@@ -20,7 +15,7 @@ sub get_event {
   my $self = shift;
   my ($heap) = @_;
 
-  return $self->source()->checkWindowEvent($self->{'window'});
+  return $self->source()->check_event();
 }
 
 
