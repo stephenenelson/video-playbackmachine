@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::TextFrame::Row;
 
+# VERSION
+
 use Moo;
 
 use Video::PlaybackMachine::FillProducer::TextFrame::Column;

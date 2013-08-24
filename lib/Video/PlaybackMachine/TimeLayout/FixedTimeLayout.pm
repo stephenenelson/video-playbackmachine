@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::TimeLayout::FixedTimeLayout;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::TimeLayout::FixedTimeLayout
 ####

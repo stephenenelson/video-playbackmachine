@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::Player::EventWheel;
 
+# VERSION
+
 use Moo;
 
 use POE;

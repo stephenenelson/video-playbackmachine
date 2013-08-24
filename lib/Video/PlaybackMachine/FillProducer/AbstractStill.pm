@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::AbstractStill;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillProducer::AbstractStill
 ####

@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::SlideShow;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillProducer::SlideShow
 ####

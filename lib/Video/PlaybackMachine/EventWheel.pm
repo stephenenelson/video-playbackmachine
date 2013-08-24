@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::EventWheel;
 
+# VERSION
+
 use Moo::Role;
 use POE;
 

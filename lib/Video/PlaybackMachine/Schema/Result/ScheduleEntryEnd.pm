@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::Schema::Result::ScheduleEntryEnd;
 
+# VERSION
+
 use strict;
 use warnings;
 

@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::TimeManager;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::TimeManager
 ####

@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::TimeLayout::RangeLayout;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::TimeLayout::RangeLayout
 ####

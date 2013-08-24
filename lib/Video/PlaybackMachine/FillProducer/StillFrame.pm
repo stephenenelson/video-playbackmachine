@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::StillFrame;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillProducer::StillFrame
 ####

@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::Scheduler;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::Scheduler
 ####

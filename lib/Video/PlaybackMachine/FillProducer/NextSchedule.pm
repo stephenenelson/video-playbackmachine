@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::NextSchedule;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillProducer::NextSchedule
 ####

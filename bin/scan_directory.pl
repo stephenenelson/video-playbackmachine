@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+# VERSION
+
 use Video::PlaybackMachine::Schema;
 use Video::PlaybackMachine::DirectoryScanner;
 use Getopt::Long;

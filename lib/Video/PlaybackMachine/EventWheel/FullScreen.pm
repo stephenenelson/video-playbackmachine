@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::EventWheel::FullScreen;
 
+# VERSION
+
 use Moo;
 
 use X11::FullScreen;

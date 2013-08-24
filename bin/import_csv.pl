@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+# VERSION
+
 use autodie;
 
 use Video::PlaybackMachine::Schema;

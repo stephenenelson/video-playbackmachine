@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::Player;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::Player
 ####

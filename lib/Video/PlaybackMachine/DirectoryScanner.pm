@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::DirectoryScanner;
 
+# VERSION
+
 use Moo;
 
 use Types::Standard qw(ArrayRef Str);

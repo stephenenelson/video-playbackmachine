@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::ScheduleTable::DB;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::ScheduleTable::DB
 ####

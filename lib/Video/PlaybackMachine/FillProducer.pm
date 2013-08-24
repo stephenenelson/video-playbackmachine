@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer;
 
+# VERSION
+
 use Moo::Role;
 
 ####

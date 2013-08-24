@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::StaticFrame;
 
+# VERSION
+
 use Moo;
 
 extends 'Video::PlaybackMachine::FillProducer::TextFrame';

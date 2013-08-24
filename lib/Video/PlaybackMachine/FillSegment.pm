@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillSegment;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillSegment
 ####

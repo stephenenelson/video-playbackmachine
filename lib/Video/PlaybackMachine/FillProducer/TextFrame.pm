@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::TextFrame;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillProducer::TextFrame
 ####

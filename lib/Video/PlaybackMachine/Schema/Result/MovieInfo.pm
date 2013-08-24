@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::Schema::Result::MovieInfo;
 
+# VERSION
+
 use strict;
 use warnings;
 

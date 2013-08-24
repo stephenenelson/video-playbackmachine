@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::TimeLayout;
 
+# VERSION
+
 ####
 #### Interface: Video::PlaybackMachine::TimeLayout
 ####

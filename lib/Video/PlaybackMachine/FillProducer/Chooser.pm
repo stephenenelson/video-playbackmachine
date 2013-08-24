@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::Chooser;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillProducer::Chooser
 ####

@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::Logger;
 
+# VERSION
+
 use Moo::Role;
 use Log::Log4perl;
 

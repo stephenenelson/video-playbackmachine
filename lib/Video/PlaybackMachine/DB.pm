@@ -1,5 +1,8 @@
 package Video::PlaybackMachine::DB;
 
+# VERSION
+
+
 use strict;
 use warnings;
 

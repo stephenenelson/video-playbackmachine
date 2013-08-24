@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::RandomStillFrame;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillProducer::RandomStillFrame
 ####

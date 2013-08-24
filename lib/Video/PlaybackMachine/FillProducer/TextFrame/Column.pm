@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::TextFrame::Column;
 
+# VERSION
+
 use Moo;
 
 has 'image' => ( 'is' => 'ro' );

@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+# VERSION
+
 use Video::PlaybackMachine::DB;
 
 my $schema = Video::PlaybackMachine::DB->schema();

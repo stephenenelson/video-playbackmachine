@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::Filler;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::Filler
 ####

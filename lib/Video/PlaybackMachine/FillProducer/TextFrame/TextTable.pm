@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::TextFrame::TextTable;
 
+# VERSION
+
 use Video::PlaybackMachine::FillProducer::TextFrame::Row;
 
 use Moo;

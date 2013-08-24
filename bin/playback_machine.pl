@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+# VERSION
+
 use Getopt::Long;
 
 use Log::Log4perl;

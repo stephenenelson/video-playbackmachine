@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::Config;
 
+# VERSION
+
 use strict;
 use warnings;
 

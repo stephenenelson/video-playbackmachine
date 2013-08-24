@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::TimeLayout::GranularTimeLayout;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::TimeLayout::GranularTimeLayout
 ####

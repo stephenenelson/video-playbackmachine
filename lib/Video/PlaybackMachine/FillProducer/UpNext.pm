@@ -1,5 +1,7 @@
 package Video::PlaybackMachine::FillProducer::UpNext;
 
+# VERSION
+
 ####
 #### Video::PlaybackMachine::FillProducer::UpNext
 ####
