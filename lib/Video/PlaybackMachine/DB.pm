@@ -2,7 +2,6 @@ package Video::PlaybackMachine::DB;
 
 use strict;
 use warnings;
-use diagnostics;
 
 =pod
 

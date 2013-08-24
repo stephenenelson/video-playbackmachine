@@ -2,7 +2,6 @@ package Video::PlaybackMachine::Config;
 
 use strict;
 use warnings;
-use diagnostics;
 
 use AppConfig qw(:expand :argcount);
 our @ISA = qw(AppConfig);
