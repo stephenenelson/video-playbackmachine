@@ -13,7 +13,6 @@ use Moo;
 use POE;
 use POE::Session;
 use Log::Log4perl;
-use Date::Manip;
 use POSIX 'INT_MAX';
 
 use Video::PlaybackMachine::Player qw(PLAYER_STATUS_PLAY);
