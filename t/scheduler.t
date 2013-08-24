@@ -39,6 +39,7 @@ sub make_scheduler {
 	
 	my $scheduler_obj = Video::PlaybackMachine::Scheduler->new(
 		'schedule_table' => $schedule_table,
+		'filler' => Video::PlaybackMachine::Filler->new()
 	);
 	
 	my $scheduler = Test::MockObject::Extends->new( $scheduler_obj );
