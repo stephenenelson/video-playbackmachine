@@ -9,5 +9,3 @@ Installation instructions:
 
 2. Install prerequisite Unix libraries and packages:
    * xine-lib
-
-(Hopefully all of the above can be handled by an RPM install)
