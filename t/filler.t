@@ -58,8 +58,8 @@ MAIN: {
   POE::Session->create(
 		       inline_states => {
 					 _start => sub {
-					   $two_seg->get_producer()->clear();
-					   $seven_seg->get_producer()->clear();
+					   $two_seg->producer()->clear();
+					   $seven_seg->producer()->clear();
 
 					   $_[KERNEL]->alias_set('Player');
 					   $_[KERNEL]->alias_set('Scheduler');
@@ -67,8 +67,8 @@ MAIN: {
 					   $_[KERNEL]->delay('check', 1);
 					 },
 					 check => sub {
-					   ok( $two_seg->get_producer()->called('start'), 'Two start' );
-					   ok( ! $seven_seg->get_producer()->called('start'), 'Seven start' );
+					   ok( $two_seg->producer()->called('start'), 'Two start' );
+					   ok( ! $seven_seg->producer()->called('start'), 'Seven start' );
 					   $_[KERNEL]->post('Filler', 'still_ready', 'test', 2);
 					 },
 					 play_still => sub {
@@ -114,7 +114,7 @@ sub make_segment {
   $producer->set_true('start');
   $producer->set_true('is_available');
   $producer->mock('get_next', sub { $_[0] + 1 });
-  $producer->set_always('get_time_layout',
+  $producer->set_always('time_layout',
 			Video::PlaybackMachine::TimeLayout::FixedTimeLayout->new($seconds));
   return Video::PlaybackMachine::FillSegment->new(
 						  name => "$seconds seconds",
