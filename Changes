@@ -1,3 +1,19 @@
+0.09 2013-08-24
+ - Moved objects to Moo
+ - Moved database to SQLite for easier installation
+ - Changed database interface to DBIx-Class
+ - Eliminated information from database that can be deduced from the file
+   system
+ - Only one file per movie
+ - Eliminated ContentManager
+ - Added scripts to import the schedule from a CSV file
+ - Simplified should_be_playing() to just "if something should be playing
+   now, play it"
+ - Eliminated the "wait list". Before, if movie Foo was scheduled to be
+   played, and movie Bar was still playing, we would try to play movie Foo
+   after Bar was done playing and there was enough time to do so. Now movie
+   Bar is simply skipped.
+
 0.08 2013-06-27
  - Reenabled most scheduler.t tests
  - Removed misuse of UNIVERSAL::isa
